@@ -1,0 +1,127 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+   
+{% block content %}   
+
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-left">
+                    <div class="menu-toggle" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search team members...">
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="header-action">
+                        <i class="far fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="header-action">
+                        <i class="far fa-envelope"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">A</div>
+                        <div class="user-info">
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT AREA -->
+            <div class="content">
+                <div class="content-header">
+                    <h1>Team Management</h1>
+                    <div class="breadcrumb">
+                        <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                        <span>Team</span>
+                    </div>
+                </div>
+
+                <!-- Team Header with Add Button -->
+                <div class="team-header">
+                    <h2>Team Members</h2>
+                    <a href="{% url 'add_team' %}" class="btn-primary">
+                        <i class="fas fa-plus"></i> Add Team Member
+                    </a>
+                </div>
+
+                <!-- Filters -->
+                <div class="team-filters">
+                    <div class="filter-group">
+                        <label for="department-filter">Department</label>
+                        <select id="department-filter">
+                            <option value="">All Departments</option>
+                            <option value="development">Development</option>
+                            <option value="design">Design</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="operations">Operations</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="status-filter">Status</label>
+                        <select id="status-filter">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="on-leave">On Leave</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sort-by">Sort By</label>
+                        <select id="sort-by">
+                            <option value="name">Name</option>
+                            <option value="date-added">Date Added</option>
+                            <option value="department">Department</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Team Grid -->
+                <div class="team-grid">
+    {% for team in team_obj %} 
+    <div class="team-card">
+        <div class="team-avatar">
+            <img src="{{team.photo.url}}" alt="{{team.name}}">
+        </div>
+        <div class="team-info">
+            <h3><a href="{% url 'team_detail' team.id %}" class="team-name-link">{{team.name}}</a></h3>
+            <p class="team-position">{{team.role}}</p>
+            <span class="team-department">{{team.status|title}}</span>
+        </div>
+        <div class="team-actions">
+            <a href="{% url 'edit_team' team.id %}" class="team-action-btn" title="Edit"><i class="fas fa-edit"></i></a>
+            <a href="{% url 'delete_team' team.id %}" class="team-action-btn" title="Delete"><i class="fas fa-trash"></i></a>
+        </div>
+    </div>
+
+   
+    {% endfor %}
+</div>
+
+
+
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="current-page">1</span>
+                    <a href="#" class="page-link">2</a>
+                    <a href="#" class="page-link">3</a>
+                    <a href="#" class="page-link">4</a>
+                    <a href="#" class="page-link">&raquo;</a>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

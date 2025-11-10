@@ -1,0 +1,367 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .testimonial-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.2s;
+        position: relative;
+        text-align: center;
+    }
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+    }
+    .testimonial-photo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 15px;
+        border: 3px solid #f0f0f0;
+    }
+    .testimonial-rating {
+        color: #ffc107;
+        margin-bottom: 10px;
+    }
+    .testimonial-info h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+    }
+    .testimonial-info p {
+        margin: 5px 0;
+        color: #666;
+    }
+    .testimonial-notes {
+        margin-top: 15px;
+        font-style: italic;
+        color: #555;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    .testimonial-actions {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    .testimonial-action-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    .testimonial-action-btn i { 
+        margin-right: 5px; 
+    }
+    .btn-edit {
+        background: #e8f4ff;
+        color: #0d6efd;
+    }
+    .btn-delete {
+        background: #ffe8e8;
+        color: #dc3545;
+    }
+
+    /* Form Styles */
+    .form-container {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    .form-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .form-section-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4a6cf7;
+        display: inline-block;
+    }
+    .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        flex: 1;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+    }
+    .form-control:focus {
+        border-color: #4a6cf7;
+        outline: none;
+    }
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .btn {
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-primary {
+        background: #4a6cf7;
+        color: #fff;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: #3b5be3;
+    }
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+    .image-preview {
+        margin-top: 15px;
+        text-align: center;
+    }
+    .image-preview img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #ddd;
+    }
+    .rating-input {
+        display: flex;
+        gap: 5px;
+        margin-top: 5px;
+    }
+    .rating-star {
+        font-size: 24px;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .rating-star:hover,
+    .rating-star.active {
+        color: #ffc107;
+    }
+    .current-photo {
+        margin-top: 10px;
+        text-align: center;
+    }
+    .current-photo img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ddd;
+    }
+    .photo-note {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+</style>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search testimonials...">
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content">
+        <div class="content-header">
+            <h1>{% if edit_mode %}Edit{% else %}Add{% endif %} Testimonial</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <a href="{% url 'testimonial' %}">Testimonials</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <span>{% if edit_mode %}Edit{% else %}Add{% endif %} Testimonial</span>
+            </div>
+        </div>
+
+        <!-- Edit Testimonial Form -->
+        <div class="form-container">
+            <h2>{% if edit_mode %}Edit{% else %}Add New{% endif %} Testimonial</h2>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Basic Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Name *</label>
+                            <input type="text" id="name" name="name" class="form-control" 
+                                   value="{{ testimonial.name }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="designation">Designation *</label>
+                            <input type="text" id="designation" name="designation" class="form-control" 
+                                   value="{{ testimonial.designation }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rating">Rating</label>
+                        <div class="rating-input">
+                            {% for i in "12345" %}
+                            <span class="rating-star {% if testimonial.rating >= forloop.counter %}active{% endif %}" 
+                                  data-value="{{ forloop.counter }}">★</span>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" id="rating" name="rating" value="{{ testimonial.rating }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testimonial_notes">Testimonial Notes *</label>
+                        <textarea id="testimonial_notes" name="testimonial_notes" class="form-control" required>{{ testimonial.testimonial_notes }}</textarea>
+                    </div>
+                </div>
+                
+                <!-- Photo Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Photo</h3>
+                    
+                    <div class="form-group">
+                        <label for="photo">Testimonial Photo</label>
+                        
+                        {% if testimonial.photo %}
+                        <div class="current-photo">
+                            <p><strong>Current Photo:</strong></p>
+                            <img src="{{ testimonial.photo.url }}" alt="{{ testimonial.name }}">
+                            <p class="photo-note">Upload a new photo to replace the current one</p>
+                        </div>
+                        {% endif %}
+                        
+                        <input type="file" id="photo" name="photo" class="form-control" accept="image/*">
+                        <div class="image-preview" id="photo-preview"></div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'testimonial' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update Testimonial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Image preview functionality
+    document.getElementById('photo').addEventListener('change', function(e) {
+        const preview = document.getElementById('photo-preview');
+        preview.innerHTML = '';
+        
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    
+    // Rating functionality
+    const ratingStars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('rating');
+    
+    ratingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            ratingInput.value = value;
+            
+            // Update stars appearance
+            ratingStars.forEach(s => {
+                if (s.getAttribute('data-value') <= value) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

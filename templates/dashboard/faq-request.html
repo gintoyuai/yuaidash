@@ -1,0 +1,446 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="main-content">
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search FAQ requests...">
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="content-header">
+            <h1>FAQ Requests</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <span>FAQ Requests</span>
+            </div>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-question"></i>
+                </div>
+                <div class="stat-number">18</div>
+                <div class="stat-label">Total Requests</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="stat-number">7</div>
+                <div class="stat-label">New Requests</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="stat-number">6</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">5</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <div class="faq-request-header">
+            <h2>User Questions & Requests</h2>
+            <div>
+                <a href="#" class="btn-primary">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
+            </div>
+        </div>
+
+        <div class="faq-request-filters">
+            <div class="filter-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="new">New</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="category-filter">Category</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="general">General</option>
+                    <option value="services">Services</option>
+                    <option value="pricing">Pricing</option>
+                    <option value="technical">Technical</option>
+                    <option value="support">Support</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="date-filter">Date</label>
+                <select id="date-filter">
+                    <option value="">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="search">Search</label>
+                <input type="text" id="search" placeholder="Search requests...">
+            </div>
+        </div>
+
+        <div class="faq-request-list">
+            {% for userfaq in userfaq_obj %}
+            <div class="faq-request-item" data-id="{{ userfaq.id }}">
+                <h3 class="faq-request-question">{{userfaq.question}}</h3>
+                <div class="faq-request-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i> {{userfaq.email_id}}
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-envelope"></i> {{userfaq.email_id}}
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i> {{userfaq.datetime}}
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-tag"></i> Services
+                    </div>
+                </div>
+                <span class="faq-request-status 
+      {% if userfaq.status == 'answered' %}text-primary
+      {% else %}text-danger
+      {% endif %}">
+                    {{ userfaq.status }}
+                </span>
+
+                <div class="faq-request-actions">
+                    <a href="#" class="faq-request-action-btn btn-view"
+                        onclick="openRequestModal('{{ userfaq.id }}', '{{ userfaq.question }}', '{{ userfaq.email_id }}', '{{ userfaq.datetime }}', '{{ userfaq.status }}')">
+                        <i class="fas fa-eye"></i> View Full Request
+                    </a>
+                    <a href="#" class="faq-request-action-btn"
+                        onclick="openResponseModal('{{ userfaq.id }}', '{{ userfaq.email_id }}', '{{ userfaq.question }}')">
+                        <i class="fas fa-reply"></i> Respond
+                    </a>
+                    <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
+                        <i class="fas fa-check"></i> Add to FAQ
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            <span class="current-page">1</span>
+            <a href="#" class="page-link">2</a>
+            <a href="#" class="page-link">3</a>
+            <a href="#" class="page-link">4</a>
+            <a href="#" class="page-link">&raquo;</a>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="requestModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeRequestModal()">&times;</span>
+        <div class="modal-header">
+            <h2>FAQ Request Details</h2>
+        </div>
+        <div class="modal-body" id="modalBody">
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="faq-request-action-btn" id="modalRespondBtn">
+                <i class="fas fa-reply"></i> Respond
+            </a>
+            <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
+                <i class="fas fa-check"></i> Add to FAQ
+            </a>
+            <a href="#" class="faq-request-action-btn btn-view" onclick="closeRequestModal()">
+                <i class="fas fa-times"></i> Close
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Response Modal with Form -->
+<div class="modal" id="responseModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeResponseModal()">&times;</span>
+        <div class="modal-header">
+            <h2>Send Response</h2>
+        </div>
+        <form method="POST" action="{% url 'send_faq_response' %}" id="responseForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="response-info">
+                    <p><strong>To:</strong> <span id="responseEmail"></span></p>
+                    <p><strong>Request ID:</strong> <span id="responseRequestId"></span></p>
+                    <p><strong>Question:</strong> <span id="responsequestion"></span></p>
+                </div>
+                <input type="hidden" name="faq_id" id="formFaqId">
+                <div class="form-group">
+                    <label for="responseText">Your Response:</label>
+                    <textarea name="response_text" id="responseText" rows="6" placeholder="Type your response here..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send Response
+                </button>
+                <button type="button" class="btn-secondary" onclick="closeResponseModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div> 
+
+<script>
+    function openRequestModal(requestId, question, email, datetime,status) {
+        const modal = document.getElementById('requestModal');
+        const modalBody = document.getElementById('modalBody');
+
+        modalBody.innerHTML = `
+            <div class="request-details">
+                <div class="detail-group">
+                    <label>Question:</label>
+                    <p>${question}</p>
+                </div>
+                <div class="detail-group">
+                    <label>User Email:</label>
+                    <p>${email}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Date Submitted:</label>
+                    <p>${datetime}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Status:</label>
+                    <p>${status}</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('modalRespondBtn').onclick = function () {
+            closeRequestModal();
+            openResponseModal(requestId, email, question);
+        };
+
+        modal.style.display = "flex";
+    }
+
+    function closeRequestModal() {
+        document.getElementById('requestModal').style.display = "none";
+    }
+
+    function openResponseModal(requestId, email, question) {
+        const modal = document.getElementById('responseModal');
+        document.getElementById('responseEmail').textContent = email;
+        document.getElementById('responsequestion').textContent = question;
+        document.getElementById('responseRequestId').textContent = requestId;
+        document.getElementById('formFaqId').value = requestId;
+        document.getElementById('responseText').value = '';
+        modal.style.display = "flex";
+    }
+
+    function closeResponseModal() {
+        document.getElementById('responseModal').style.display = "none";
+    }
+
+    function sendResponse() {
+        const responseText = document.getElementById('responseText').value.trim();
+        const requestId = document.getElementById('responseRequestId').textContent;
+
+        if (!responseText) {
+            alert('Please enter a response before sending.');
+            return;
+        }
+
+        console.log(`Sending response for request ${requestId}:`, responseText);
+        alert('Response sent successfully!');
+        closeResponseModal();
+    }
+
+    window.addEventListener('click', function (event) {
+        const requestModal = document.getElementById('requestModal');
+        const responseModal = document.getElementById('responseModal');
+
+        if (event.target === requestModal) {
+            closeRequestModal();
+        }
+
+        if (event.target === responseModal) {
+            closeResponseModal();
+        }
+    });
+</script>
+
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .modal-close {
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .modal-close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        padding: 20px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .request-details .detail-group {
+        margin-bottom: 15px;
+    }
+
+    .request-details label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .request-details p {
+        margin: 0;
+        padding: 8px 12px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+    }
+
+    .response-info {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .btn-primary {
+        background-color: #4a6cf7;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary:hover {
+        background-color: #3a5ce5;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+</style>
+
+{% endblock %}

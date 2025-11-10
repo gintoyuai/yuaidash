@@ -1,0 +1,463 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+
+{% block content %}
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="breadcrumb">
+                <a href="{% url 'team' %}">Team</a> 
+                <i class="fas fa-chevron-right" style="font-size: 10px; margin: 0 10px;"></i>
+                <span>{{ team_member.name }}</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="content-header">
+            <a href="{% url 'team' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Team
+            </a>
+        </div>
+        <div class="team-detail-card">
+            <div class="team-detail-header">
+                <div class="team-detail-avatar">
+                    <img src="{{ team_member.photo.url }}" alt="{{ team_member.name }}">
+                </div>
+                <div class="team-detail-info">
+                    <h1>{{ team_member.name }}</h1>
+                    <p class="team-position">{{ team_member.role }}</p>
+                    <span class="status {% if team_member.status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                        {{ team_member.status|title }}
+                    </span>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ team_member.email }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ team_member.phone_number }}</span>
+                        </div>
+                        {% if team_member.portfolio %}
+                        <div class="contact-item">
+                            <i class="fas fa-globe"></i>
+                            <a href="{{ team_member.portfolio }}" target="_blank">Portfolio</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="team-detail-actions">
+                    <a href="{% url 'edit_team' team_member.id %}" class="btn-primary">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    {% if team_member.cv %}
+                    <a href="{{ team_member.cv.url }}" download class="btn-secondary">
+                        <i class="fas fa-download"></i> Download CV
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="team-detail-content">
+                <div class="detail-section">
+                    <h3><i class="fas fa-tools"></i> Skills & Expertise</h3>
+                    <div class="skills-container">
+                        {% for skill in team_member.skills.splitlines %}
+                            <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3><i class="fas fa-briefcase"></i> Experience Summary</h3>
+                    <div class="experience-summary">
+                        <div class="summary-item">
+                            <strong>Total Experience:</strong>
+                            <span>{{ team_member.experience_years }} years</span>
+                        </div>
+                        {% if team_member.current_project %}
+                        <div class="summary-item">
+                            <strong>Current Project:</strong>
+                            <span>{{ team_member.current_project }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                    {% if education %}
+                    <div class="education-list">
+                        {% for edu in education %}
+                        <div class="education-item">
+                            <div class="edu-header">
+                                <h4>{{ edu.degree }}</h4>
+                                <span class="edu-year">{{ edu.graduation_year }}</span>
+                            </div>
+                            <p class="edu-institution">{{ edu.institution }}</p>
+                            <p class="edu-field">Field: {{ edu.field_of_study }}</p>
+                            {% if edu.certification %}
+                            <p class="edu-certification">Certifications: {{ edu.certification }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="no-data">No education details available.</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h3><i class="fas fa-building"></i> Work Experience</h3>
+                    {% if experience %}
+                    <div class="experience-list">
+                        {% for exp in experience %}
+                        <div class="experience-item">
+                            <div class="exp-header">
+                                <h4>{{ exp.job_title }}</h4>
+                                <span class="exp-duration">
+                                    {{ exp.start_date }} - {% if exp.end_date %}{{ exp.end_date }}{% else %}Present{% endif %}
+                                </span>
+                            </div>
+                            <p class="exp-company">{{ exp.company_name }}</p>
+                            <p class="exp-description">{{ exp.job_description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="no-data">No work experience available.</p>
+                    {% endif %}
+                </div>
+
+                {% if social_links %}
+                <div class="detail-section">
+                    <h3><i class="fas fa-share-alt"></i> Social Links</h3>
+                    <div class="social-links">
+                        {% for link in social_links %}
+                        <a href="{{ link.link }}" target="_blank" class="social-link {{ link.platform|lower }}">
+                            <i class="fab fa-{{ link.platform|lower }}"></i>
+                            {{ link.platform }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #007bff;
+    text-decoration: none;
+    margin-bottom: 20px;
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background-color: #f8f9fa;
+    text-decoration: none;
+}
+
+.team-detail-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.team-detail-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    padding: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.team-detail-avatar img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+}
+
+.team-detail-info {
+    flex: 1;
+}
+
+.team-detail-info h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+    font-weight: 700;
+}
+
+.team-position {
+    font-size: 1.3em;
+    margin: 0 0 15px 0;
+    opacity: 0.9;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status-active { background: rgba(255, 255, 255, 0.2); }
+.status-inactive { background: rgba(255, 255, 255, 0.1); }
+
+.contact-info {
+    margin-top: 20px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.contact-item a {
+    color: white;
+    text-decoration: underline;
+}
+
+.team-detail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.team-detail-content {
+    padding: 40px;
+}
+
+.detail-section {
+    margin-bottom: 40px;
+}
+
+.detail-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.skill-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.experience-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.summary-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.summary-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.education-list, .experience-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.education-item, .experience-item {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    border-left: 4px solid #28a745;
+}
+
+.exp-header, .edu-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.exp-header h4, .edu-header h4 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.exp-duration, .edu-year {
+    background: #007bff;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.exp-company, .edu-institution {
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.exp-description, .edu-field, .edu-certification {
+    color: #555;
+    line-height: 1.6;
+}
+
+.social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+}
+
+.social-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.social-link.github { border-left: 4px solid #333; }
+.social-link.linkedin { border-left: 4px solid #0077b5; }
+.social-link.twitter { border-left: 4px solid #1da1f2; }
+.social-link.instagram { border-left: 4px solid #e4405f; }
+.social-link.facebook { border-left: 4px solid #1877f2; }
+
+.no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .team-detail-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    
+    .team-detail-actions {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .exp-header, .edu-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .team-detail-content {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}
+

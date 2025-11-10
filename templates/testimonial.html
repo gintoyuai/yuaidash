@@ -1,0 +1,334 @@
+{% extends 'base1.html' %}
+{% load static %}
+{% block content %}
+<!--==================================================-->
+<!-- Start solutek breadcumb Area -->
+<!--==================================================-->
+<div class="breadcumb-area">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="breadcumb-content">
+					<h4>Client Feedback on YUAI</h4>
+					<p style="color: antiquewhite;"> Real experiences. Trusted partnerships. Proven impact.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!--==================================================-->
+<!-- end solutek breadcumb Area -->
+<!--==================================================-->
+
+
+
+
+
+
+
+
+<!--==================================================-->
+<!-- Start solutek testimonial Area style-three-->
+<!--==================================================-->
+
+<div class="testimonial-area style-three">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="section-title text-center">
+					<h5 class="section-sub-title">TESTIMONIALS</h5>
+					<h1 class="section-main-title">Few Stories From Our <span>Client</span></h1>
+				</div>
+			</div>
+			<div class="row">
+				<div class="testi_inner owl-carousel">
+					{% for i in test %}
+					<div class="col-lg-12 col-md-12">
+						<div class="testi-box">
+							<div class="testi-single-box">
+								<div class="test-user-img">
+									<img src="{{i.photo.url}}" alt="img">
+								</div>
+								<div class="testi-content">
+									<div class="testi-icon">
+										<img src="{% static 'assets/images/testi1.png' %}" alt="testi1">
+									</div>
+									<p class="testi-text">{{i.testimonial_notes}}</p>
+									<ul class="testi-rating">
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+									</ul>
+									<h3 class="testi-title">{{i.name}} <span>{{i.designation}}</span></h3>
+								</div>
+							</div>
+						</div>
+					</div>
+					{% endfor %}
+					<!-- <div class="col-lg-12 col-md-12">
+						<div class="testi-box">
+							<div class="testi-single-box">
+								<div class="test-user-img">
+									<img src="{% static 'assets/images/inner/testi-inu.png' %}" alt="img">
+								</div>
+								<div class="testi-content">
+									<div class="testi-icon">
+										<img src="{% static 'assets/images/testi1.png' %}" alt="testi1">
+									</div>
+									<p class="testi-text">paradigms. Monotonectally extend open-source
+									mvia competitive methods of empowerment dri
+									revolutionize stand- business</p>
+									<ul class="testi-rating">
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+									</ul>
+									<h3 class="testi-title">Alberta Infantino <span>DEVELOPER</span></h3>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-12 col-md-12">
+						<div class="testi-box">
+							<div class="testi-single-box">
+								<div class="test-user-img">
+									<img src="{% static 'assets/images/inner/test-inu2.png' %}" alt="img">
+								</div>
+								<div class="testi-content">
+									<div class="testi-icon">
+										<img src="{% static 'assets/images/testi1.png' %}" alt="testi1">
+									</div>
+									<p class="testi-text">paradigms. Monotonectally extend open-source
+									mvia competitive methods of empowerment dri
+									revolutionize stand- business</p>
+									<ul class="testi-rating">
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+									</ul>
+									<h3 class="testi-title">Saifur Rahman<span>DEVELOPER</span></h3>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-12 col-md-12">
+						<div class="testi-box">
+							<div class="testi-single-box">
+								<div class="test-user-img">
+									<img src="{% static 'assets/images/inner/testi-inu.png' %}" alt="img">
+								</div>
+								<div class="testi-content">
+									<div class="testi-icon">
+										<img src="{% static 'assets/images/testi1.png' %}" alt="testi1">
+									</div>
+									<p class="testi-text">paradigms. Monotonectally extend open-source
+									mvia competitive methods of empowerment dri
+									revolutionize stand- business</p>
+									<ul class="testi-rating">
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+									</ul>
+									<h3 class="testi-title">Alberta Infantino <span>UI Desiger</span></h3>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-12 col-md-12">
+						<div class="testi-box">
+							<div class="testi-single-box">
+								<div class="test-user-img">
+									<img src="{% static 'assets/images/inner/test-inu2.png' %}" alt="img">
+								</div>
+								<div class="testi-content">
+									<div class="testi-icon">
+										<img src="{% static 'assets/images/testi1.png' %}" alt="testi1">
+									</div>
+									<p class="testi-text">paradigms. Monotonectally extend open-source
+									mvia competitive methods of empowerment dri
+									revolutionize stand- business</p>
+									<ul class="testi-rating">
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+										<li><i class="bi bi-star-fill"></i></li>
+									</ul>
+									<h3 class="testi-title">Saifur Rahman<span>DEVELOPER</span></h3>
+								</div>
+							</div>
+						</div>
+					</div> -->
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<!--==================================================-->
+<!-- end solutek testimonial Area -->
+<!--==================================================-->
+
+
+
+
+
+
+<!--==================================================-->
+<!-- Start solutek blog Area -->
+<!--==================================================-->
+
+<!-- <div class="blog-area">
+	<div class="container">
+		<div class="row align-items-center">
+			<div class="col-lg-6">
+				<div class="section-title text-left">
+					<h5 class="section-sub-title">OUR LATEST BLOG</h5>
+					<h1 class="section-main-title">Exploring Its Potential in</h1>
+					<h1 class="section-main-title">Various <span>Industries.</span></h1>
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="project-right">
+					<div class="solutek-btn">
+						<a href="blog-grid.html">VIEW  all post
+							<div class="solutek-hover-btn hover-bx"></div>
+							<div class="solutek-hover-btn hover-bx2"></div>
+							<div class="solutek-hover-btn hover-bx3"></div>
+							<div class="solutek-hover-btn hover-bx4"></div>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xl-5 col-lg-6 col-md-6">
+				<div class="blog-singele-box">
+					<div class="blog-thumb">
+						<img src="{% static 'assets/images/blog1.png' %}" alt="blog1">
+					</div>
+					<div class="blog-content">
+						<div class="blog-date">
+							<h4><i class="bi bi-calendar2-check"></i>20 June 2024 <span><i class="bi bi-chat-left-text"></i>Comment-05</span></h4>
+						</div>
+						<h3 class="blog-title"><a href="blog-details.html">Leveraging Descriptive Solutions for Business Growth.</a></h3>
+						<p class="blog-tex">Appropriatel promote enterprise-wide vortals throuh in information
+						without equity best  revolutioniz</p>
+						<div class="blog-btn">
+							<a href="blog-details.html">READ MORE<i class="bi bi-arrow-right"></i></a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-7 col-lg-6 col-md-6">
+				<div class="blog-singele-box-tow">
+					<div class="blog-thumb-tow">
+						<img src="{% static 'assets/images/blog2.png' %}" alt="blog1">
+					</div>
+					<div class="blog-content-tow">
+						<div class="blog-date-tow">
+							<h4><i class="bi bi-calendar2-check"></i>20 June 2024 <span><i class="bi bi-chat-left-text"></i>Comment-05</span></h4>
+						</div>
+						<h3 class="blog-title-two"><a href="blog-details.html">How to Create Modern Web Site For Your Business..</a></h3>
+						<p class="blog-tex-tow">Appropriatel promote enterprise-wide throuh in information
+						without best  revolutioniz</p>
+						<div class="blog-btn-tow">
+							<a href="blog-details.html">READ MORE<i class="bi bi-arrow-right"></i></a>
+						</div>
+					</div>
+				</div>
+				<div class="blog-singele-box-tow">
+					<div class="blog-thumb-tow">
+						<img src="{% static 'assets/images/blog3.png' %}" alt="blog1">
+					</div>
+					<div class="blog-content-tow">
+						<div class="blog-date-tow">
+							<h4><i class="bi bi-calendar2-check"></i>20 June 2024 <span><i class="bi bi-chat-left-text"></i>Comment-05</span></h4>
+						</div>
+						<h3 class="blog-title-two"><a href="blog-details.html">How to Create Modern Web Site For Your Business..</a></h3>
+						<p class="blog-tex-tow">Appropriatel promote enterprise-wide throuh in information
+						without best  revolutioniz</p>
+						<div class="blog-btn-tow">
+							<a href="blog-details.html">READ MORE<i class="bi bi-arrow-right"></i></a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div> -->
+
+<!-- -----new---- -->
+<div class="blog-area style-two">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="section-title text-left">
+                    <h5 class="section-sub-title">OUR LATEST BLOG</h5>
+                    <h1 class="section-main-title">Discover fresh ideas</h1>
+                    <h1 class="section-main-title">and the latest innovations from <span>YUAI.</span></h1>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="project-right">
+                    <div class="solutek-btn">
+                        <a href="{% url 'loadbloggrid' %}">VIEW ALL POSTS</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+		<div class="row">
+			{% for blog in blogList %}
+                {% if forloop.counter <= 3 %}
+			<div class="col-lg-4 col-md-6">
+				<div class="single-blog-box">
+					<div class="single-blog-thumb">
+						{% if blog.image %}
+                                        <img src="{{ blog.image.url }}" alt="blog{{ forloop.counter }}" >
+                                    {% else %}
+                                        <img src="{% static 'assets/images/blog2.png' %}" alt="default">
+                                    {% endif %}
+						<div class="blog-meta-top">
+							<a href="{{ blog.get_url }}">Yuai Blogs</a>
+						</div>
+					</div>
+					<div class="blog-box-content">
+					   <div class="meta-blog">
+						  <a href="{{ blog.get_url }}"><span><i class="far fa-user"></i>{{ blog.name }}</span></a>
+						</div>
+						<h3><a href="{{ blog.get_url }}">{{blog.subject}}
+						</a></h3>
+						<div class="blog-button">
+							<a class="btn-2" href="{{ blog.get_url }}">read post</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			{% endif %}
+			{% endfor %}
+			
+		</div> 
+
+    </div>
+</div>
+
+
+
+<!--==================================================-->
+<!-- end solutek blog Area -->
+<!--==================================================-->
+
+
+
+{% endblock %}

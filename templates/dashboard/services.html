@@ -1,0 +1,413 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .service-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s;
+        position: relative;
+    }
+
+    .service-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .service-status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d4f8e8;
+        color: #08875d;
+    }
+
+    .status-inactive {
+        background: #ffe2e2;
+        color: #c0392b;
+    }
+
+    .service-info h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .service-actions {
+        margin-top: 15px;
+    }
+
+    .service-action-btn {
+        margin-right: 10px;
+        font-size: 14px;
+        color: #555;
+        text-decoration: none;
+    }
+
+    .service-action-btn i {
+        margin-right: 5px;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .modal:target {
+        display: flex;
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 25px;
+        border-radius: 16px;
+        max-width: 700px;
+        width: 100%;
+        position: relative;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .close {
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        font-size: 28px;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .modal-logo {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f8f8f8;
+        padding: 5px;
+    }
+
+    .modal-body {
+        font-size: 15px;
+        color: #444;
+    }
+
+    .modal-image img {
+        width: 100%;
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 15px;
+    }
+
+    .modal-meta {
+        list-style: none;
+        padding: 0;
+        margin-top: 15px;
+    }
+
+    .modal-meta li {
+        margin-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search services...">
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content">
+        <div class="content-header">
+            <h1>Service Management</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <span>Services</span>
+            </div>
+        </div>
+
+        <div class="service-header">
+            <h2>Our Services</h2>
+            <a href="{% url 'add_services' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> Add New Service
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="service-filters">
+            <div class="filter-group">
+                <label for="category-filter">Category</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="web-development">Web Development</option>
+                    <option value="mobile-apps">Mobile Applications</option>
+                    <option value="cloud-services">Cloud Services</option>
+                    <option value="consulting">Consulting</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="draft">Draft</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort-by">Sort By</label>
+                <select id="sort-by">
+                    <option value="name">Name</option>
+                    <option value="date-added">Date Added</option>
+                    <option value="popularity">Popularity</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Service Grid -->
+        <div class="service-grid">
+            <!-- Service 1 -->
+            {% for service in Service_obj %}
+            <div class="service-card">
+                <span class="service-status 
+    {% if service.status == 'Active' %}
+        status-active
+    {% elif service.status == 'Inactive' %}
+        status-inactive
+    {% else %}
+        status-pending
+    {% endif %}" >
+                    {{ service.status }}
+                </span>
+                <div class="service-icon">
+                    <img src="{{service.logo.url}}" alt="{{service.service}} Icon">
+                </div>
+                <div class="service-info">
+                    <h3>{{service.service}}</h3>
+                    <span class="service-category">{{service.service}}</span>
+                    <p>{{service.description|truncatechars:200}}</p>
+                </div>
+                <div class="service-actions">
+                    <a href="{% url 'service_detail' service.id %}" class="service-action-btn">
+                        <i class="fas fa-eye"></i> View
+                    </a> <a href="{% url 'edit_service' service.id %}" class="service-action-btn"><i
+                            class="fas fa-edit"></i> Edit</a>
+
+                    <a href="#" onclick="openModal({{ service.id }})" class="service-action-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div id="deleteModal{{ service.id }}" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal({{ service.id }})">&times;</span>
+                    <h3>Confirm Delete</h3>
+                    <p>Are you sure you want to delete <strong>{{ service.name }}</strong>?</p>
+                    <div class="actions">
+                        <button onclick="closeModal({{ service.id }})" class="cancel">Cancel</button>
+                        <form method="POST" action="{% url 'delete_service' service.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="delete">Yes, Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <!-- Service 2 -->
+
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <span class="current-page">1</span>
+            <a href="#" class="page-link">2</a>
+            <a href="#" class="page-link">3</a>
+            <a href="#" class="page-link">&raquo;</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal background */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Modal content */
+    .modal-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Close (X) */
+    .close {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    /* Buttons */
+    .actions {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    button.cancel {
+        background: #ccc;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button.delete {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button.cancel:hover {
+        background: #bbb;
+    }
+
+    button.delete:hover {
+        background: #c0392b;
+    }
+</style>
+
+<script>
+    function openModal(id) {
+        document.getElementById('deleteModal' + id).style.display = 'flex';
+    }
+    function closeModal(id) {
+        document.getElementById('deleteModal' + id).style.display = 'none';
+    }
+
+
+    // ---------------
+
+    // Simplified filtering (without sorting by date/popularity)
+function filterServices() {
+    const searchTerm = document.querySelector('.search-box input').value.toLowerCase();
+    const categoryFilter = document.getElementById('category-filter').value;
+    const statusFilter = document.getElementById('status-filter').value;
+    
+    document.querySelectorAll('.service-card').forEach(card => {
+        const serviceName = card.querySelector('h3').textContent.toLowerCase();
+        const serviceDesc = card.querySelector('p').textContent.toLowerCase();
+        const serviceCategory = card.querySelector('.service-category').textContent.toLowerCase();
+        const serviceStatus = card.querySelector('.service-status').textContent.toLowerCase();
+        
+        const matchesSearch = serviceName.includes(searchTerm) || serviceDesc.includes(searchTerm);
+        const matchesCategory = !categoryFilter || serviceCategory.includes(categoryFilter);
+        const matchesStatus = !statusFilter || serviceStatus.includes(statusFilter);
+        
+        card.style.display = (matchesSearch && matchesCategory && matchesStatus) ? 'block' : 'none';
+    });
+}
+
+// Add event listeners
+document.querySelector('.search-box input').addEventListener('input', filterServices);
+document.getElementById('category-filter').addEventListener('change', filterServices);
+document.getElementById('status-filter').addEventListener('change', filterServices);
+document.getElementById('sort-by').addEventListener('change', filterServices);
+
+</script>
+
+
+{% endblock %}

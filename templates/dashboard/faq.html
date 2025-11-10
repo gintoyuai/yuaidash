@@ -1,0 +1,184 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+   
+{% block content %}   
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-left">
+                    <div class="menu-toggle" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search FAQs...">
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="header-action">
+                        <i class="far fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="header-action">
+                        <i class="far fa-envelope"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">A</div>
+                        <div class="user-info">
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT AREA -->
+            <div class="content">
+                <div class="content-header">
+                    <h1>FAQ Management</h1>
+                    <div class="breadcrumb">
+                        <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                        <span>FAQ</span>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="stat-number">42</div>
+                        <div class="stat-label">Total FAQs</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="stat-number">38</div>
+                        <div class="stat-label">Published</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-pencil-alt"></i>
+                        </div>
+                        <div class="stat-number">4</div>
+                        <div class="stat-label">Drafts</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">Pending Requests</div>
+                    </div>
+                </div>
+
+                <!-- FAQ Header with Add Button -->
+                <div class="faq-header">
+                    <h2>Frequently Asked Questions</h2>
+                    <a href="{% url 'add_faq' %}" class="btn-primary">
+                        <i class="fas fa-plus"></i> Add New FAQ
+                    </a>
+                </div>
+
+                <!-- Filters -->
+                <div class="faq-filters">
+                    <div class="filter-group">
+                        <label for="category-filter">Category</label>
+                        <select id="category-filter">
+                            <option value="">All Categories</option>
+                            <option value="general">General</option>
+                            <option value="services">Services</option>
+                            <option value="pricing">Pricing</option>
+                            <option value="technical">Technical</option>
+                            <option value="support">Support</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="status-filter">Status</label>
+                        <select id="status-filter">
+                            <option value="">All Status</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sort-by">Sort By</label>
+                        <select id="sort-by">
+                            <option value="date-added">Date Added</option>
+                            <option value="popularity">Popularity</option>
+                            <option value="alphabetical">Alphabetical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="search">Search</label>
+                        <input type="text" id="search" placeholder="Search questions...">
+                    </div>
+                </div>
+
+                <!-- FAQ List -->
+                <div class="faq-list">
+
+                    {% for faq in faq_obj %}
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div>
+                                <h3>{{faq.question}}</h3>
+                                <span class="faq-category">{{faq.status}}</span>
+                                <span class="faq-status status-published">Published</span>
+                            </div>
+                            <div class="faq-toggle"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>{{faq.answer}}</p>
+                            <span class="faq-meta"><strong> Added no </strong>  {{faq.datetime}}</span>
+                            <span class="faq-meta"><strong>  Email </strong> {{faq.email_id}}</span>
+                            <div class="faq-actions">
+                                <a href="#" class="faq-action-btn"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="#" class="faq-action-btn"><i class="fas fa-trash"></i> Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                  
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="current-page">1</span>
+                    <a href="#" class="page-link">2</a>
+                    <a href="#" class="page-link">3</a>
+                    <a href="#" class="page-link">&raquo;</a>
+                </div>
+            </div>
+        </div>
+   
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const toggleIcon = question.querySelector('.faq-toggle i');
+                
+                answer.classList.toggle('active');
+                
+                if (answer.classList.contains('active')) {
+                    toggleIcon.className = 'fas fa-chevron-up';
+                } else {
+                    toggleIcon.className = 'fas fa-chevron-down';
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,230 @@
+{% extends 'base1.html' %}
+{% load static %}
+{% block content %}
+
+<!--==================================================-->
+<!-- Start solutek breadcumb Area -->
+<!--==================================================-->
+<div class="breadcumb-area">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="breadcumb-content">
+					<h4>CONTACT US </h4>
+					<br>
+					<p style="color: antiquewhite;">Great things happen when we connect. Let’s build something amazing
+						together!</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!--==================================================-->
+<!-- end solutek breadcumb Area -->
+<!--==================================================-->
+
+<!--==================================================-->
+<!-- Start solutek contact Area -->
+<!--==================================================-->
+
+<div class="contact-area">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6">
+				<div class="section-title text-left">
+					<h5 class="section-sub-title">CONTACT US</h5>
+					<h1 class="section-main-title">Make an Online Appoinemnt Booking</h1>
+					<h1 class="section-main-title">For Business Planing.</h1>
+				</div>
+
+				{% if messages %}
+				{% for message in messages %}
+				<div class="alert alert-success" id="alert-box">
+					{{ message }}
+				</div>
+				{% endfor %}
+				<script>
+					setTimeout(function () {
+						const alertBox = document.getElementById("alert-box");
+						if (alertBox) {
+							alertBox.style.display = "none";
+						}
+					}, 5000);
+				</script>
+				{% endif %}
+
+				<div class="contact_from_box">
+					<form action="{% url 'loadcontact' %}" method="POST" id="dreamit-form">
+						{% csrf_token %}
+						<div class="row">
+							<div class="col-lg-6">
+								<div class="form_box">
+									<input type="text" name="name" placeholder="Your Name *" required
+										pattern="^[A-Za-z\s]{2,50}$"
+										title="Name should contain only letters and spaces (2-50 characters)">
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="form_box">
+									<input type="email" name="email" placeholder="Your E-Mail *" required>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="form_box">
+									<input type="text" name="subject" placeholder="Subject *" required
+										pattern="^[A-Za-z0-9\s]{2,100}$"
+										title="Subject can contain letters, numbers, and spaces (2-100 characters)">
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="form_box">
+									<input type="text" name="phone" placeholder="Phone" required pattern="^\+?\d{7,15}$"
+										title="Enter a valid phone number (7-15 digits, optional +)">
+								</div>
+							</div>
+							<div class="col-lg-12">
+								<div class="form_box">
+									<textarea name="message" id="message" cols="30" rows="10" placeholder="Message"
+										required pattern="^[A-Za-z0-9\s.,!?'-]{10,500}$"
+										title="Message can include letters, numbers, and punctuation (10-500 characters)"></textarea>
+								</div>
+								<div class="quote_button">
+									<button class="btn" type="submit">SEND NOW <i
+											class="bi bi-arrow-right"></i></button>
+											
+									<a href="/static/assets/yuai.pdf" class="brochure-button" download>
+										DOWNLOAD BROCHURE <i class="bi bi-file-earmark-pdf"></i> 
+									</a>
+
+								</div>
+
+
+
+							</div>
+						</div>
+					</form>
+					<div id="status" class="error"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!--==================================================-->
+<!-- end solutek contact Area -->
+<!--==================================================-->
+
+<!--==================================================-->
+<!-- Start solutek google map area-->
+<!--==================================================-->
+<div class="google-map">
+	<div class="container">
+		<div class="row">
+			<div class="col-12 text-center mb-4">
+				<h2 style="font-size: 2rem; color: #050a1e; margin-bottom: 30px;">Our Global Offices</h2>
+			</div>
+		</div>
+
+		<!-- Zambia Office -->
+		<div class="row align-items-center mb-5">
+			<!-- Image Column -->
+			<div class="col-md-6 mb-3">
+				<a href="https://maps.app.goo.gl/TpXXfaCmmNtjYKD7A"
+					class="d-block position-relative text-decoration-none">
+
+					<img src="{% static 'assets/images/lusakam.PNG' %}" alt="Office Location"
+						class="img-fluid rounded shadow" style="width: 100%; height: auto;">
+
+					<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+						style="background: rgba(0, 87, 154, 0.7); color: white; font-weight: 500; font-size: 1rem; opacity: 0; transition: opacity 0.3s;"
+						onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+						<i class="bi bi-geo-alt-fill me-2"></i>Click here to navigate location
+					</div>
+				</a>
+			</div>
+
+			<!-- Text Column -->
+			<div class="col-md-6">
+				<div class="row">
+					<div class="col-12 mb-2">
+						<h3 style="font-size: 1.5rem; color: #050a1e;">
+							<i class="bi bi-geo-alt" style="color: #00579A; margin-right: 8px;"></i> 🇿🇲 Zambia Office
+						</h3>
+					</div>
+					<div class="col-md-6">
+						<p style="color: #636e72; margin-bottom: 8px;">
+							<strong style="display: block; color: #2d3436;">Address</strong>
+							YUAI SOFT TECHNOLOGIES L.T.D <br>
+							Room 2, Block A, Woodfield Office Park,<br>
+							Manchinichi Road, Lusaka, Zambia
+						</p>
+					</div>
+					<div class="col-md-6">
+						<p style="color: #636e72;">
+							<strong style="display: block; color: #2d3436;">Contact</strong>
+							+260-77794106<br>
+							info@yuaisoftsolutions.com
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- India Office -->
+		<div class="row align-items-center mb-5">
+
+			<div class="col-md-6 mb-3">
+				<a href="https://www.google.com/maps/place/DD+Sunset+Island+Apartment+Complex/@10.0171638,76.2265147,17z/data=!4m6!3m5!1s0x3b0813c2253d3653:0xb714ac4262830886!8m2!3d10.0171451!4d76.2266468!16s%2Fg%2F11f9yv_n06?entry=ttu&g_ep=EgoyMDI1MDMyNS4xIKXMDSoASAFQAw%3D%3D"
+					class="d-block position-relative text-decoration-none">
+
+
+					<img src="{% static 'assets/images/keralam.PNG' %}" alt="Office Location"
+						class="img-fluid rounded shadow" style="width: 100%; height: auto;">
+
+
+					<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+						style="background: rgba(0, 87, 154, 0.7); color: white; font-weight: 500; font-size: 1rem; opacity: 0; transition: opacity 0.3s;"
+						onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'"
+						ontouchstart="this.style.opacity='1'">
+						<i class="bi bi-geo-alt-fill me-2"></i>Click here to navigate location
+					</div>
+				</a>
+			</div>
+
+			<!-- Text Column -->
+			<div class="col-md-6">
+				<div class="row">
+					<div class="col-12 mb-2">
+						<h3 style="font-size: 1.5rem; color: #050a1e;">
+							<i class="bi bi-geo-alt" style="color: #00579A; margin-right: 8px;"></i>🇮🇳 India Office
+						</h3>
+					</div>
+					<div class="col-md-6">
+						<p style="color: #636e72; margin-bottom: 8px;">
+							<strong style="display: block; color: #2d3436;">Address</strong>
+							DD Sunset Island Apartments, Flat No. 15 F,<br>
+							Vypin, Munambam Road, Schoolmuttam,<br>
+							Kerala 682511, India
+						</p>
+					</div>
+					<div class="col-md-6">
+						<p style="color: #636e72;">
+							<strong style="display: block; color: #2d3436;">Contact</strong>
+							+91 9961931958<br>
+							info@yuaisoftsolutions.com
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+<!--==================================================-->
+<!--End solutek google map area-->
+<!--==================================================-->
+
+
+
+{% endblock %}

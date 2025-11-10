@@ -1,0 +1,801 @@
+{% extends "dashboard/mainbase.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Team Grid Styles */
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .team-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s;
+        position: relative;
+    }
+
+    .team-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .team-status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d4f8e8;
+        color: #08875d;
+    }
+
+    .status-inactive {
+        background: #ffe2e2;
+        color: #c0392b;
+    }
+
+    .team-info h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .team-role {
+        color: #4a6cf7;
+        font-weight: 600;
+        margin: 5px 0;
+    }
+
+    .team-contact {
+        margin: 10px 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .team-actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .team-action-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-view {
+        background: #f0f5ff;
+        color: #4a6cf7;
+    }
+
+    .btn-edit {
+        background: #fff4e6;
+        color: #ff9f43;
+    }
+
+    .btn-delete {
+        background: #fff5f5;
+        color: #ff6b6b;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .modal:target {
+        display: flex;
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 25px;
+        border-radius: 16px;
+        max-width: 800px;
+        width: 100%;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .close {
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        font-size: 28px;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .modal-photo {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #f8f9fa;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-body {
+        font-size: 15px;
+        color: #444;
+    }
+
+    .modal-section {
+        margin-bottom: 20px;
+    }
+
+    .modal-section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .modal-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .modal-detail-item {
+        margin-bottom: 10px;
+    }
+
+    .modal-detail-label {
+        font-weight: 600;
+        color: #666;
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .modal-detail-value {
+        color: #333;
+    }
+
+    .social-links {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .social-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        color: #4a6cf7;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .social-link:hover {
+        background: #4a6cf7;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    /* Form Styles */
+    .form-container {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .form-section-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4a6cf7;
+        display: inline-block;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        flex: 1;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #4a6cf7;
+        outline: none;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: #4a6cf7;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: #3b5be3;
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .image-preview {
+        margin-top: 15px;
+        text-align: center;
+    }
+
+    .image-preview img {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 50%;
+        border: 1px solid #ddd;
+        object-fit: cover;
+    }
+
+    .dynamic-form-container {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        position: relative;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .add-btn {
+        background: #4a6cf7;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+</style>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search team members...">
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content">
+        <div class="content-header">
+            <h1>Team Management</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <a href="{% url 'team' %}">Team</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <span>Add Team Member</span>
+            </div>
+        </div>
+
+        <!-- Add Team Member Form -->
+        <div class="form-container">
+            <h2>Add New Team Member</h2>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Basic Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="role">Role *</label>
+                            <input type="text" id="role" name="role" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone_number">Phone Number *</label>
+                            <input type="text" id="phone_number" name="phone_number" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="experience_years">Years of Experience *</label>
+                            <input type="number" id="experience_years" name="experience_years" class="form-control"
+                                min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="current_project">Current Project</label>
+                            <input type="text" id="current_project" name="current_project" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="portfolio">Portfolio URL</label>
+                            <input type="url" id="portfolio" name="portfolio" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" name="status" class="form-control">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skills">Skills *</label>
+                        <textarea id="skills" name="skills" class="form-control"
+                            placeholder="List skills separated by commas" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Media Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Media</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="photo">Profile Photo</label>
+                            <input type="file" id="photo" name="photo" class="form-control" accept="image/*">
+                            <div class="image-preview" id="photo-preview"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cv">CV/Resume</label>
+                            <input type="file" id="cv" name="cv" class="form-control" accept=".pdf,.doc,.docx">
+                            <small>Accepted formats: PDF, DOC, DOCX</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Education</h3>
+
+                    <div id="education-container">
+                        <div class="dynamic-form-container">
+                            <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="degree_1">Degree *</label>
+                                    <input type="text" id="degree_1" name="degree[]" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="institution_1">Institution *</label>
+                                    <input type="text" id="institution_1" name="institution[]" class="form-control"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="graduation_year_1">Graduation Year *</label>
+                                    <input type="number" id="graduation_year_1" name="graduation_year[]"
+                                        class="form-control" min="1900" max="2100" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="field_of_study_1">Field of Study *</label>
+                                    <input type="text" id="field_of_study_1" name="field_of_study[]"
+                                        class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="certification_1">Certifications</label>
+                                <textarea id="certification_1" name="certification[]" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="add-education" class="add-btn">
+                        <i class="fas fa-plus"></i> Add Education
+                    </button>
+                </div>
+
+                <!-- Experience Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Work Experience</h3>
+
+                    <div id="experience-container">
+                        <div class="dynamic-form-container">
+                            <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="company_name_1">Company Name *</label>
+                                    <input type="text" id="company_name_1" name="company_name[]" class="form-control"
+                                        required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="job_title_1">Job Title *</label>
+                                    <input type="text" id="job_title_1" name="job_title[]" class="form-control"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="start_date_1">Start Date *</label>
+                                    <input type="date" id="start_date_1" name="start_date[]" class="form-control"
+                                        required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="end_date_1">End Date</label>
+                                    <input type="date" id="end_date_1" name="end_date[]" class="form-control">
+                                    <small>Leave blank if currently employed</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="job_description_1">Job Description *</label>
+                                <textarea id="job_description_1" name="job_description[]" class="form-control"
+                                    required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="add-experience" class="add-btn">
+                        <i class="fas fa-plus"></i> Add Experience
+                    </button>
+                </div>
+
+                <!-- Social Links Section -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Social Links</h3>
+
+                    <div id="social-links-container">
+                        <div class="dynamic-form-container">
+                            <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="platform_1">Platform *</label>
+                                    <select id="platform_1" name="platform[]" class="form-control" required>
+                                        <option value="">Select Platform</option>
+                                        <option value="GitHub">GitHub</option>
+                                        <option value="LinkedIn">LinkedIn</option>
+                                        <option value="Instagram">Instagram</option>
+                                        <option value="Twitter">Twitter</option>
+                                        <option value="Facebook">Facebook</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="link_1">Profile URL *</label>
+                                    <input type="url" id="link_1" name="link[]" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="add-social-link" class="add-btn">
+                        <i class="fas fa-plus"></i> Add Social Link
+                    </button>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'team' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Team Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Image preview functionality
+    document.getElementById('photo').addEventListener('change', function (e) {
+        const preview = document.getElementById('photo-preview');
+        preview.innerHTML = '';
+
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Counter for dynamic forms
+    let educationCount = 1;
+    let experienceCount = 1;
+    let socialCount = 1;
+
+    // Add education form
+    document.getElementById('add-education').addEventListener('click', function () {
+        educationCount++;
+
+        const container = document.getElementById('education-container');
+        const newEducation = document.createElement('div');
+        newEducation.className = 'dynamic-form-container';
+        newEducation.innerHTML = `
+            <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="degree_${educationCount}">Degree *</label>
+                    <input type="text" id="degree_${educationCount}" name="degree[]" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="institution_${educationCount}">Institution *</label>
+                    <input type="text" id="institution_${educationCount}" name="institution[]" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="graduation_year_${educationCount}">Graduation Year *</label>
+                    <input type="number" id="graduation_year_${educationCount}" name="graduation_year[]" class="form-control" min="1900" max="2100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="field_of_study_${educationCount}">Field of Study *</label>
+                    <input type="text" id="field_of_study_${educationCount}" name="field_of_study[]" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="certification_${educationCount}">Certifications</label>
+                <textarea id="certification_${educationCount}" name="certification[]" class="form-control"></textarea>
+            </div>
+        `;
+
+        container.appendChild(newEducation);
+    });
+
+    // Add experience form
+    document.getElementById('add-experience').addEventListener('click', function () {
+        experienceCount++;
+
+        const container = document.getElementById('experience-container');
+        const newExperience = document.createElement('div');
+        newExperience.className = 'dynamic-form-container';
+        newExperience.innerHTML = `
+            <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="company_name_${experienceCount}">Company Name *</label>
+                    <input type="text" id="company_name_${experienceCount}" name="company_name[]" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="job_title_${experienceCount}">Job Title *</label>
+                    <input type="text" id="job_title_${experienceCount}" name="job_title[]" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start_date_${experienceCount}">Start Date *</label>
+                    <input type="date" id="start_date_${experienceCount}" name="start_date[]" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end_date_${experienceCount}">End Date</label>
+                    <input type="date" id="end_date_${experienceCount}" name="end_date[]" class="form-control">
+                    <small>Leave blank if currently employed</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="job_description_${experienceCount}">Job Description *</label>
+                <textarea id="job_description_${experienceCount}" name="job_description[]" class="form-control" required></textarea>
+            </div>
+        `;
+
+        container.appendChild(newExperience);
+    });
+
+    // Add social link form
+    document.getElementById('add-social-link').addEventListener('click', function () {
+        socialCount++;
+
+        const container = document.getElementById('social-links-container');
+        const newSocial = document.createElement('div');
+        newSocial.className = 'dynamic-form-container';
+        newSocial.innerHTML = `
+            <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="platform_${socialCount}">Platform *</label>
+                    <select id="platform_${socialCount}" name="platform[]" class="form-control" required>
+                        <option value="">Select Platform</option>
+                        <option value="GitHub">GitHub</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Twitter">Twitter</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="link_${socialCount}">Profile URL *</label>
+                    <input type="url" id="link_${socialCount}" name="link[]" class="form-control" required>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(newSocial);
+    });
+
+    // Remove form function
+    function removeForm(button) {
+        const formContainer = button.closest('.dynamic-form-container');
+        // Don't remove if it's the only form in the container
+        if (formContainer.parentElement.children.length > 1) {
+            formContainer.remove();
+        }
+    }
+</script>
+
+{% endblock %}
