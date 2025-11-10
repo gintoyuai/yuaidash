@@ -1,0 +1,62 @@
+# --- Python & Django ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# --- Django specific ---
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+*.log
+
+# Ignore all migration files except __init__.py
+*/migrations/*
+!*/migrations/__init__.py
+
+# --- Virtual environment ---
+myenv/
+venv/
+env/
+ENV/
+*.env
+.env
+.env.*
+
+# --- IDE / Editor files ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Node / Frontend (if used) ---
+node_modules/
+dist/
+build/
+
+# --- System files ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# --- Package / Dependency management ---
+*.egg-info/
+*.egg
+*.whl
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# --- Cache / Temp / Logs ---
+.cache/
+coverage/
+*.pid
+*.seed
+*.bak
+*.tmp
+*.swp
+*.swo
+tmp/
+logs/
