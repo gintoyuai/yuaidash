@@ -45,10 +45,18 @@ urlpatterns = [
     
     path('faq-request/', views.faq_request, name='faq_request'),
     path('send-faq-response/', views.send_faq_response, name='send_faq_response'),
+    path('add-to-faq/<int:userfaq_id>/', views.add_to_faq, name='add_to_faq'),
+    path('faq-request/export-csv/', views.export_faq_csv, name='export_faq_csvs'),
+    
         
     path('faq/', views.faq, name='faq'),
     
     path('queries/', views.queries, name='queries'),
+    path('queries/export-csv/', views.export_queries_csv, name='export_queries_csv'),
+    
+    path('send-query-response/', views.send_query_response, name='send_query_response'),
+    path('mark-query-resolved/<int:query_id>/', views.mark_query_resolved, name='mark_query_resolved'),
+    
     path('ref/', views.ref, name='ref'),
     path('services/', views.services, name='services'),
     path('team/', views.team, name='team'),

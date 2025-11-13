@@ -1,127 +1,180 @@
 {% extends "dashboard/mainbase.html" %}
 {% load static %}
-   
-{% block content %}   
+
+{% block content %}
 
 
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            <!-- HEADER -->
-            <div class="header">
-                <div class="header-left">
-                    <div class="menu-toggle" id="menu-toggle">
-                        <i class="fas fa-bars"></i>
-                    </div>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search team members...">
-                    </div>
-                </div>
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search team members...">
+            </div>
+        </div>
 
-                <div class="header-right">
-                    <div class="header-action">
-                        <i class="far fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </div>
-                    <div class="header-action">
-                        <i class="far fa-envelope"></i>
-                        <span class="notification-badge">5</span>
-                    </div>
-                    <div class="user-profile">
-                        <div class="user-avatar">A</div>
-                        <div class="user-info">
-                            <div class="user-name">Admin User</div>
-                            <div class="user-role">Administrator</div>
-                        </div>
-                    </div>
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
                 </div>
             </div>
-
-            <!-- CONTENT AREA -->
-            <div class="content">
-                <div class="content-header">
-                    <h1>Team Management</h1>
-                    <div class="breadcrumb">
-                        <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                        <span>Team</span>
-                    </div>
-                </div>
-
-                <!-- Team Header with Add Button -->
-                <div class="team-header">
-                    <h2>Team Members</h2>
-                    <a href="{% url 'add_team' %}" class="btn-primary">
-                        <i class="fas fa-plus"></i> Add Team Member
-                    </a>
-                </div>
-
-                <!-- Filters -->
-                <div class="team-filters">
-                    <div class="filter-group">
-                        <label for="department-filter">Department</label>
-                        <select id="department-filter">
-                            <option value="">All Departments</option>
-                            <option value="development">Development</option>
-                            <option value="design">Design</option>
-                            <option value="marketing">Marketing</option>
-                            <option value="operations">Operations</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="status-filter">Status</label>
-                        <select id="status-filter">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="on-leave">On Leave</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="sort-by">Sort By</label>
-                        <select id="sort-by">
-                            <option value="name">Name</option>
-                            <option value="date-added">Date Added</option>
-                            <option value="department">Department</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Team Grid -->
-                <div class="team-grid">
-    {% for team in team_obj %} 
-    <div class="team-card">
-        <div class="team-avatar">
-            <img src="{{team.photo.url}}" alt="{{team.name}}">
-        </div>
-        <div class="team-info">
-            <h3><a href="{% url 'team_detail' team.id %}" class="team-name-link">{{team.name}}</a></h3>
-            <p class="team-position">{{team.role}}</p>
-            <span class="team-department">{{team.status|title}}</span>
-        </div>
-        <div class="team-actions">
-            <a href="{% url 'edit_team' team.id %}" class="team-action-btn" title="Edit"><i class="fas fa-edit"></i></a>
-            <a href="{% url 'delete_team' team.id %}" class="team-action-btn" title="Delete"><i class="fas fa-trash"></i></a>
         </div>
     </div>
 
-   
-    {% endfor %}
-</div>
-
-
-
-
-                <!-- Pagination -->
-                <div class="pagination">
-                    <span class="current-page">1</span>
-                    <a href="#" class="page-link">2</a>
-                    <a href="#" class="page-link">3</a>
-                    <a href="#" class="page-link">4</a>
-                    <a href="#" class="page-link">&raquo;</a>
-                </div>
+    <!-- CONTENT AREA -->
+    <div class="content">
+        <div class="content-header">
+            <h1>Team Management</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <span>Team</span>
             </div>
         </div>
+
+        <!-- Team Header with Add Button -->
+        <div class="team-header">
+            <h2>Team Members</h2>
+            <a href="{% url 'add_team' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> Add Team Member
+            </a>
+        </div>
+
+        <!-- Filters -->
+<form method="get" action="{% url 'team' %}" id="filter-form">
+    <div class="team-filters">
+
+        <div class="filter-group">
+            <label for="role-filter">Role</label>
+            <select id="role-filter" name="role" onchange="this.form.submit()">
+                <option value="">All Roles</option>
+                {% for role in roles %}
+                <option value="{{ role }}" {% if request.GET.role == role %}selected{% endif %}>
+                    {{ role }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="status-filter">Status</label>
+            <select id="status-filter" name="status" onchange="this.form.submit()">
+                <option value="">All Status</option>
+                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="sort-by">Sort By</label>
+            <select id="sort-by" name="sort" onchange="this.form.submit()">
+                <option value="-id" {% if request.GET.sort == '-id' or not request.GET.sort %}selected{% endif %}>Date Added (Newest)</option>
+                <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Name</option>
+                <option value="role" {% if request.GET.sort == 'role' %}selected{% endif %}>Role</option>
+                <option value="-experience_years" {% if request.GET.sort == '-experience_years' %}selected{% endif %}>Experience (High to Low)</option>
+            </select>
+        </div>
+
+        <!-- Clear Filters Button -->
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <a href="{% url 'team' %}" class="btn-secondary" style="display: inline-block; padding: 8px 16px; text-decoration: none;">
+                Clear Filters
+            </a>
+        </div>
+
+    </div>
+</form>
+
+        <!-- Team Grid -->
+        <div class="team-grid">
+            {% for team in team_obj %}
+            <div class="team-card">
+                <div class="team-avatar">
+                    <img src="{{team.photo.url}}" alt="{{team.name}}">
+                </div>
+                <div class="team-info">
+                    <h3><a href="{% url 'team_detail' team.id %}" class="team-name-link">{{team.name}}</a></h3>
+                    <p class="team-position">{{team.role}}</p>
+                    <span class="team-department">{{team.status|title}}</span>
+                </div>
+                <div class="team-actions">
+                    <a href="{% url 'edit_team' team.id %}" class="team-action-btn" title="Edit"><i
+                            class="fas fa-edit"></i></a>
+                    <!-- (OLD CODE) <a href="{% url 'delete_team' team.id %}" class="team-action-btn" title="Delete"><i class="fas fa-trash"></i></a> -->
+
+                    <!-- Delete button (triggers modal) -->
+                    <button type="button" class="team-action-btn" title="Delete"
+                        style="border: none; background: none; cursor: pointer;" data-bs-toggle="modal"
+                        data-bs-target="#deleteModal{{ team.id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+
+                </div>
+            </div>
+
+
+            {% endfor %}
+        </div>
+
+        
+      <div class="pagination">
+            {% for num in team_obj.paginator.page_range %}
+                {% if team_obj.number == num %}
+                    <span class="current-page">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if team_obj.has_next %}
+                <a href="?page={{ team_obj.next_page_number }}" class="page-link">&raquo;</a>
+            {% endif %}
+       </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modals -->
+{% for team in team_obj %}
+<div class="modal fade" id="deleteModal{{ team.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ team.id }}"
+    aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel{{ team.id }}">Delete Team Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove <strong>{{ team.name }}</strong> from the team? This action cannot be
+                undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'delete_team' team.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Remove Member</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 {% endblock %}
