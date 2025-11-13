@@ -168,6 +168,18 @@
         cursor: pointer;
     }
     
+    /* Checkbox styling */
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 25px;
+    }
+    .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
     /* Status indicators */
     .status-badge {
         display: inline-block;
@@ -185,6 +197,48 @@
         background: #fff3e0;
         color: #ef6c00;
     }
+    
+    /* Messages styling */
+    .messages {
+        margin-bottom: 20px;
+    }
+    .alert {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .alert.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+    }
+    .alert.error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+    }
+
+    .existing-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.image-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 6px;
+}
+.image-item img {
+  border-radius: 6px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+
+
 </style>
 
 <!-- MAIN CONTENT -->
@@ -223,7 +277,7 @@
     <!-- CONTENT AREA -->
     <div class="content">
         <div class="content-header">
-            <h1>Edit Blog Post <span class="status-badge status-published">Published</span></h1>
+            <h1>Edit Blog Post</h1>
             <div class="breadcrumb">
                 <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
                 <a href="{% url 'blog' %}">Blogs</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
@@ -232,12 +286,20 @@
             </div>
         </div>
 
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="blog-management">
             <!-- Edit Blog Form -->
             <div class="blog-form-container">
-                <h2>Edit Blog Post: "The Future of Web Development"</h2>
+                <h2>Edit Blog Post: "{{ blog.subject }}"</h2>
                 
-                <form method="POST" enctype="multipart/form-data" id="blogForm">
+                <form method="POST" enctype="multipart/form-data" id="blogForm" action="{% url 'edit_blog' blog.pk %}">
                     {% csrf_token %}
                     
                     <!-- Basic Information Section -->
@@ -247,24 +309,24 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="name">Author Name *</label>
-                                <input type="text" id="name" name="name" class="form-control" value="John Doe" required>
+                                <input type="text" id="name" name="name" class="form-control" value="{{ blog.name }}" required>
                             </div>
                             
                             <div class="form-group">
                                 <label for="designation">Designation</label>
-                                <input type="text" id="designation" name="designation" class="form-control" value="Senior Web Developer">
+                                <input type="text" id="designation" name="designation" class="form-control" value="{{ blog.designation }}">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="subject">Blog Subject *</label>
-                                <input type="text" id="subject" name="subject" class="form-control" value="The Future of Web Development" required>
+                                <input type="text" id="subject" name="subject" class="form-control" value="{{ blog.subject }}" required>
                             </div>
                             
                             <div class="form-group">
                                 <label class="checkbox-group">
-                                    <input type="checkbox" id="featured" name="featured" checked>
+                                    <input type="checkbox" id="featured" name="featured" {% if blog.featured %}checked{% endif %}>
                                     <span>Featured Blog Post</span>
                                 </label>
                             </div>
@@ -272,12 +334,12 @@
                         
                         <div class="form-group">
                             <label for="description">Blog Content *</label>
-                            <textarea id="description" name="description" class="form-control" required>Exploring the latest trends and technologies that are shaping the future of web development and how they will impact businesses. In recent years, we've seen significant advancements in frameworks, tools, and methodologies that are transforming how we build for the web.</textarea>
+                            <textarea id="description" name="description" class="form-control" required>{{ blog.description }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label for="blog_quotes">Quotes (Optional)</label>
-                            <textarea id="blog_quotes" name="blog_quotes" class="form-control">"The web is becoming increasingly intelligent and responsive, creating more immersive user experiences than ever before." - Web Development Expert</textarea>
+                            <textarea id="blog_quotes" name="blog_quotes" class="form-control">{{ blog.blog_quotes }}</textarea>
                         </div>
                     </div>
                     
@@ -289,33 +351,48 @@
                             <label for="image">Featured Image</label>
                             <input type="file" id="image" name="image" class="form-control" accept="image/*">
                             <div class="image-preview" id="image-preview">
-                                <img src="https://via.placeholder.com/300x180" alt="Current featured image">
+                                {% if blog.image %}
+                                <img src="{{ blog.image.url }}" alt="Current featured image">
                                 <p class="image-note">Current featured image</p>
+                                {% else %}
+                                <p>No featured image set</p>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Existing Images -->
+                        {% if blog.blogimage_set.all %}
                         <div class="existing-images">
                             <label>Existing Additional Images</label>
                             <div class="existing-images-grid">
+                                {% for blog_image in blog.blogimage_set.all %}
                                 <div class="existing-image-item">
-                                    <img src="https://via.placeholder.com/150x120" alt="Additional image 1">
+                                    <img src="{{ blog_image.image.url }}" alt="Additional image {{ forloop.counter }}">
                                     <div class="existing-image-actions">
-                                        <button class="delete-image-btn" title="Delete image">
+                                        <button type="button" class="delete-image-btn" title="Delete image" data-image-id="{{ blog_image.id }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="existing-image-item">
-                                    <img src="https://via.placeholder.com/150x120" alt="Additional image 2">
-                                    <div class="existing-image-actions">
-                                        <button class="delete-image-btn" title="Delete image">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
+                        {% endif %}
+                        
+                            <h4>Existing Images</h4>
+                            <div class="existing-images">
+                                {% for img in existing_images %}
+                                    <div class="image-item">
+                                    <img src="{{ img.image.url }}" alt="Blog image" style="width:120px; height:120px; object-fit:cover;">
+                                    <label>
+                                        <input type="checkbox" name="delete_images" value="{{ img.id }}">
+                                        Delete
+                                    </label>
+                                    </div>
+                                {% empty %}
+                                    <p>No additional images.</p>
+                                {% endfor %}
+                            </div>
                         
                         <div class="form-group">
                             <label>Add More Images</label>
@@ -336,12 +413,10 @@
                     
                     <!-- Form Actions -->
                     <div class="form-actions">
-                        <button type="button" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Delete Post
-                        </button>
-                        <button type="button" class="btn btn-secondary">
-                            Save as Draft
-                        </button>
+                        
+                        <a href="{% url 'blog' %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Update Blog
                         </button>
@@ -358,9 +433,9 @@
         const preview = document.getElementById('image-preview');
         
         if (this.files && this.files[0]) {
-            preview.innerHTML = '';
             const reader = new FileReader();
             reader.onload = function(e) {
+                preview.innerHTML = '';
                 const img = document.createElement('img');
                 img.src = e.target.result;
                 preview.appendChild(img);
@@ -425,9 +500,30 @@
     // Add event listeners to delete existing image buttons
     document.querySelectorAll('.delete-image-btn').forEach(button => {
         button.addEventListener('click', function() {
+            const imageId = this.getAttribute('data-image-id');
             const confirmDelete = confirm('Are you sure you want to delete this image?');
             if (confirmDelete) {
+                // In a real implementation, you would make an AJAX request to delete the image
+                // For now, we'll just remove it from the DOM
                 this.closest('.existing-image-item').remove();
+                
+                // Example AJAX request (uncomment and implement if you have a delete image endpoint)
+                /*
+                fetch(`/delete-blog-image/${imageId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.closest('.existing-image-item').remove();
+                    } else {
+                        alert('Error deleting image');
+                    }
+                });
+                */
             }
         });
     });
@@ -457,16 +553,6 @@
             alert('Please enter blog content.');
             document.getElementById('description').focus();
             return;
-        }
-    });
-    
-    // Delete post confirmation
-    document.querySelector('.btn-danger').addEventListener('click', function() {
-        const confirmDelete = confirm('Are you sure you want to delete this blog post? This action cannot be undone.');
-        if (confirmDelete) {
-            // In a real application, this would trigger a delete request
-            alert('Blog post deleted. Redirecting to blog management...');
-            window.location.href = "{% url 'blog' %}";
         }
     });
 </script>

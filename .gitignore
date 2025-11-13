@@ -60,3 +60,4 @@ coverage/
 *.swo
 tmp/
 logs/
+db.sqlite3

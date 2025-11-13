@@ -64,35 +64,6 @@
         margin-right: 5px;
     }
 
-    /* Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
-
-    .modal:target {
-        display: flex;
-    }
-
-    .modal-content {
-        background: #fff;
-        padding: 25px;
-        border-radius: 16px;
-        max-width: 700px;
-        width: 100%;
-        position: relative;
-        animation: fadeIn 0.3s ease-in-out;
-    }
-
     .close {
         position: absolute;
         right: 20px;
@@ -154,6 +125,33 @@
             transform: scale(1);
         }
     }
+
+    /* No Results Styles */
+    .no-results {
+        display: none;
+        text-align: center;
+        padding: 60px 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .no-results i {
+        font-size: 64px;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .no-results h3 {
+        color: #6c757d;
+        margin-bottom: 10px;
+        font-size: 24px;
+    }
+
+    .no-results p {
+        color: #868e96;
+        font-size: 16px;
+    }
 </style>
 <!-- MAIN CONTENT -->
 <div class="main-content">
@@ -165,7 +163,7 @@
             </div>
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search services...">
+                <input type="text" id="global-search" placeholder="Search services...">
             </div>
         </div>
 
@@ -198,6 +196,33 @@
             </div>
         </div>
 
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-number">{{ total_services }}</div>
+                <div class="stat-label">Total Services</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <div class="stat-number">{{ total_active }}</div>
+                <div class="stat-label">Total Active Services</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <div class="stat-number">{{ total_inactive }}</div>
+                <div class="stat-label">Total Inactive Services</div>
+            </div>
+        </div>
+
         <div class="service-header">
             <h2>Our Services</h2>
             <a href="{% url 'add_services' %}" class="btn-primary">
@@ -211,10 +236,9 @@
                 <label for="category-filter">Category</label>
                 <select id="category-filter">
                     <option value="">All Categories</option>
-                    <option value="web-development">Web Development</option>
-                    <option value="mobile-apps">Mobile Applications</option>
-                    <option value="cloud-services">Cloud Services</option>
-                    <option value="consulting">Consulting</option>
+                    {% for c in page_obj %}
+                    <option value="{{c.service|lower}}">{{c.service}}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -223,7 +247,7 @@
                 <select id="status-filter">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
-                    <option value="draft">Draft</option>
+                    <option value="inactive">Inactive</option>
                 </select>
             </div>
 
@@ -235,21 +259,28 @@
                     <option value="popularity">Popularity</option>
                 </select>
             </div>
+
+            <div class="filter-group">
+                <button id="reset-filters" class="btn-secondary">Reset Filters</button>
+            </div>
         </div>
 
         <!-- Service Grid -->
-        <div class="service-grid">
-            <!-- Service 1 -->
-            {% for service in Service_obj %}
-            <div class="service-card">
+        <div class="service-grid" id="service-grid">
+            {% for service in page_obj %}
+            <div class="service-card" 
+                 data-name="{{ service.service|lower }}"
+                 data-description="{{ service.description|lower }}"
+                 data-category="{{ service.service|lower }}"
+                 data-status="{{ service.status|lower }}">
                 <span class="service-status 
-    {% if service.status == 'Active' %}
-        status-active
-    {% elif service.status == 'Inactive' %}
-        status-inactive
-    {% else %}
-        status-pending
-    {% endif %}" >
+                    {% if service.status == 'Active' %}
+                        status-active
+                    {% elif service.status == 'Inactive' %}
+                        status-inactive
+                    {% else %}
+                        status-pending
+                    {% endif %}">
                     {{ service.status }}
                 </span>
                 <div class="service-icon">
@@ -263,9 +294,10 @@
                 <div class="service-actions">
                     <a href="{% url 'service_detail' service.id %}" class="service-action-btn">
                         <i class="fas fa-eye"></i> View
-                    </a> <a href="{% url 'edit_service' service.id %}" class="service-action-btn"><i
-                            class="fas fa-edit"></i> Edit</a>
-
+                    </a> 
+                    <a href="{% url 'edit_service' service.id %}" class="service-action-btn">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
                     <a href="#" onclick="openModal({{ service.id }})" class="service-action-btn">
                         <i class="fas fa-trash"></i> Delete
                     </a>
@@ -277,7 +309,7 @@
                 <div class="modal-content">
                     <span class="close" onclick="closeModal({{ service.id }})">&times;</span>
                     <h3>Confirm Delete</h3>
-                    <p>Are you sure you want to delete <strong>{{ service.name }}</strong>?</p>
+                    <p>Are you sure you want to delete <strong>{{ service.service }}</strong>?</p>
                     <div class="actions">
                         <button onclick="closeModal({{ service.id }})" class="cancel">Cancel</button>
                         <form method="POST" action="{% url 'delete_service' service.id %}" style="display:inline;">
@@ -288,20 +320,41 @@
                 </div>
             </div>
             {% endfor %}
-            <!-- Service 2 -->
+        </div>
 
+        <!-- No Results Message -->
+        <div id="no-results" class="no-results">
+            <i class="fas fa-concierge-bell"></i>
+            <h3>No services found</h3>
+            <p>Try adjusting your search or filters</p>
         </div>
 
         <!-- Pagination -->
         <div class="pagination">
-            <span class="current-page">1</span>
-            <a href="#" class="page-link">2</a>
-            <a href="#" class="page-link">3</a>
-            <a href="#" class="page-link">&raquo;</a>
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link">&laquo;</a>
+            {% else %}
+            <span class="page-link">&laquo;</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+            <span class="current-page">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} 
+            <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link">&raquo;</a>
+            {% else %}
+            <span class="page-link">&raquo;</span>
+            {% endif %}
         </div>
     </div>
 </div>
 
+<!-- Modal CSS -->
 <style>
     /* Modal background */
     .modal {
@@ -368,46 +421,137 @@
     button.delete:hover {
         background: #c0392b;
     }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const globalSearch = document.getElementById('global-search');
+        const categoryFilter = document.getElementById('category-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const sortBy = document.getElementById('sort-by');
+        const resetFilters = document.getElementById('reset-filters');
+        const serviceGrid = document.getElementById('service-grid');
+        const serviceCards = document.querySelectorAll('.service-card');
+        const noResults = document.getElementById('no-results');
+
+        function filterServices() {
+            const searchTerm = globalSearch.value.toLowerCase();
+            const categoryValue = categoryFilter.value;
+            const statusValue = statusFilter.value;
+            
+            let visibleCount = 0;
+
+            serviceCards.forEach(card => {
+                const serviceName = card.dataset.name;
+                const serviceDescription = card.dataset.description;
+                const serviceCategory = card.dataset.category;
+                const serviceStatus = card.dataset.status;
+
+                // Check search filter
+                const searchMatch = !searchTerm || 
+                                  serviceName.includes(searchTerm) || 
+                                  serviceDescription.includes(searchTerm);
+                
+                // Check category filter
+                const categoryMatch = !categoryValue || serviceCategory.includes(categoryValue);
+                
+                // Check status filter
+                const statusMatch = !statusValue || serviceStatus.includes(statusValue);
+
+                if (searchMatch && categoryMatch && statusMatch) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide no results message
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+                serviceGrid.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                serviceGrid.style.display = 'grid';
+            }
+
+            // Sort services if needed
+            sortServices();
+        }
+
+        function sortServices() {
+            const sortValue = sortBy.value;
+            const container = serviceGrid;
+            const cards = Array.from(container.querySelectorAll('.service-card[style="display: block"]'));
+
+            cards.sort((a, b) => {
+                switch (sortValue) {
+                    case 'name':
+                        return a.dataset.name.localeCompare(b.dataset.name);
+                    case 'popularity':
+                        // You can add popularity data attribute if available
+                        return 0; // Default order
+                    case 'date-added':
+                    default:
+                        // You can add date data attribute if available
+                        return 0; // Default order
+                }
+            });
+
+            // Reappend cards in sorted order
+            cards.forEach(card => container.appendChild(card));
+        }
+
+        function resetAllFilters() {
+            globalSearch.value = '';
+            categoryFilter.value = '';
+            statusFilter.value = '';
+            sortBy.value = 'name';
+            filterServices();
+        }
+
+        // Event listeners
+        globalSearch.addEventListener('input', filterServices);
+        categoryFilter.addEventListener('change', filterServices);
+        statusFilter.addEventListener('change', filterServices);
+        sortBy.addEventListener('change', filterServices);
+        resetFilters.addEventListener('click', resetAllFilters);
+
+        // Initial filter check
+        filterServices();
+    });
+
     function openModal(id) {
         document.getElementById('deleteModal' + id).style.display = 'flex';
     }
+
     function closeModal(id) {
         document.getElementById('deleteModal' + id).style.display = 'none';
     }
 
-
-    // ---------------
-
-    // Simplified filtering (without sorting by date/popularity)
-function filterServices() {
-    const searchTerm = document.querySelector('.search-box input').value.toLowerCase();
-    const categoryFilter = document.getElementById('category-filter').value;
-    const statusFilter = document.getElementById('status-filter').value;
-    
-    document.querySelectorAll('.service-card').forEach(card => {
-        const serviceName = card.querySelector('h3').textContent.toLowerCase();
-        const serviceDesc = card.querySelector('p').textContent.toLowerCase();
-        const serviceCategory = card.querySelector('.service-category').textContent.toLowerCase();
-        const serviceStatus = card.querySelector('.service-status').textContent.toLowerCase();
-        
-        const matchesSearch = serviceName.includes(searchTerm) || serviceDesc.includes(searchTerm);
-        const matchesCategory = !categoryFilter || serviceCategory.includes(categoryFilter);
-        const matchesStatus = !statusFilter || serviceStatus.includes(statusFilter);
-        
-        card.style.display = (matchesSearch && matchesCategory && matchesStatus) ? 'block' : 'none';
-    });
-}
-
-// Add event listeners
-document.querySelector('.search-box input').addEventListener('input', filterServices);
-document.getElementById('category-filter').addEventListener('change', filterServices);
-document.getElementById('status-filter').addEventListener('change', filterServices);
-document.getElementById('sort-by').addEventListener('change', filterServices);
-
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
 </script>
-
 
 {% endblock %}

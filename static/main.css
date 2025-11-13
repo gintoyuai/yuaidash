@@ -55,6 +55,105 @@
             min-height: 100vh;
         }
 
+        
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .modal:target {
+        display: flex;
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 25px;
+        border-radius: 16px;
+        max-width: 700px;
+        width: 100%;
+        position: relative;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+
+    
+
+    /* Modal background */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Modal content */
+    .modal-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Close (X) */
+    .close {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    /* Buttons */
+    .actions {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    button.cancel {
+        background: #ccc;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button.delete {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button.cancel:hover {
+        background: #bbb;
+    }
+
+    button.delete:hover {
+        background: #c0392b;
+    }
+
         /* ===== SIDEBAR ===== */
         .sidebar {
             width: var(--sidebar-width);
