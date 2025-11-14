@@ -685,7 +685,7 @@ def edit_team(request, pk):
                     lk = new_links[i].strip() if i < len(new_links) else ''
                     if not pl or not lk:
                         continue
-                    if not SocialLink.objects.filter(team_member=member, platform=pl, link=lk).exists():
+                    if not SocialLink.objects.filter(team_member=member, platform=pl).exists():
                         SocialLink.objects.create(team_member=member, platform=pl, link=lk)
 
                 messages.success(request, "Team member updated successfully!")
@@ -997,7 +997,7 @@ def faq(request):
     faq_obj = AdminFAQ.objects.all().order_by('-id')
     total_faq = faq_obj.count()
     
-    paginator = Paginator(faq_obj, 3)
+    paginator = Paginator(faq_obj, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1204,7 +1204,7 @@ def team(request):
     
     roles = Team.objects.values_list('role', flat=True).distinct().order_by('role')
     
-    paginator = Paginator(team_list, 2)
+    paginator = Paginator(team_list, 9)
     page_number = request.GET.get('page', 1)
     try:
         team_list = paginator.page(page_number)

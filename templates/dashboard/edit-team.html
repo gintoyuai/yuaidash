@@ -482,11 +482,7 @@
 
           {% for edu in member.education.all %}
           <div class="dynamic-form-container">
-            <form method="post" action="{% url 'delete_education' edu.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="remove-btn"
-                onclick="return confirm('Delete this education entry?');">×</button>
-            </form>
+            <button type="button" class="remove-btn" onclick="if(confirm('Delete this education entry?')) { document.getElementById('delete-edu-{{ edu.id }}').submit(); }">×</button>
 
             <input type="hidden" name="edu_ids[]" value="{{ edu.id }}">
             <div class="form-row">
@@ -531,11 +527,7 @@
 
           {% for ex in member.experience.all %}
           <div class="dynamic-form-container">
-            <form method="post" action="{% url 'delete_experience' ex.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="remove-btn"
-                onclick="return confirm('Delete this experience entry?');">×</button>
-            </form>
+            <button type="button" class="remove-btn" onclick="if(confirm('Delete this experience entry?')) { document.getElementById('delete-exp-{{ ex.id }}').submit(); }">×</button>
 
             <input type="hidden" name="exp_ids[]" value="{{ ex.id }}">
             <div class="form-row">
@@ -581,24 +573,24 @@
 
           {% for s in member.social_links.all %}
           <div class="dynamic-form-container">
-            <form method="post" action="{% url 'delete_sociallink' s.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="remove-btn" onclick="return confirm('Delete this social link?');">×</button>
-            </form>
+            <button type="button" class="remove-btn" onclick="if(confirm('Delete this social link?')) { document.getElementById('delete-social-{{ s.id }}').submit(); }">×</button>
 
             <input type="hidden" name="social_ids[]" value="{{ s.id }}">
             <div class="form-row">
+
               <div class="form-group">
                 <label>Platform *</label>
                 <select name="social_platform[]" class="form-control" required>
                   <option value="">-- Select Platform --</option>
-                  <option value="linkedin" {% if s.platform == "linkedin" %}selected{% endif %}>LinkedIn</option>
-                  <option value="github" {% if s.platform == "github" %}selected{% endif %}>GitHub</option>
-                  <option value="twitter" {% if s.platform == "twitter" %}selected{% endif %}>Twitter</option>
-                  <option value="instagram" {% if s.platform == "instagram" %}selected{% endif %}>Instagram</option>
-                  <option value="facebook" {% if s.platform == "facebook" %}selected{% endif %}>Facebook</option>
-                  <option value="other" {% if s.platform == "other" %}selected{% endif %}>Other</option>
+                  <option value="LinkedIn" {% if s.platform == "LinkedIn" %}selected{% endif %}>LinkedIn</option>
+                  <option value="GitHub" {% if s.platform == "GitHub" %}selected{% endif %}>GitHub</option>
+                  <option value="Twitter" {% if s.platform == "Twitter" %}selected{% endif %}>Twitter</option>
+                  <option value="Instagram" {% if s.platform == "Instagram" %}selected{% endif %}>Instagram</option>
+                  <option value="Facebook" {% if s.platform == "Facebook" %}selected{% endif %}>Facebook</option>
+                  <option value="Other" {% if s.platform == "Other" %}selected{% endif %}>Other</option>
                 </select>
+              </div>
+              
             </div>
             <div class="form-group">
               <label>Profile URL *</label>
@@ -619,16 +611,38 @@
     <div class="form-actions">
       <a href="{% url 'team' %}" class="btn btn-secondary">Cancel</a>
 
-      <form method="post" action="{% url 'delete_team' member.id %}" style="display:inline;"
-        onsubmit="return confirm('Delete this team member permanently?');">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-secondary" style="background:#ff4d4f;color:#fff;border:none;"><i
-            class="fas fa-trash"></i> Delete</button>
-      </form>
+      <button type="button" class="btn btn-secondary" style="background:#ff4d4f;color:#fff;border:none;"
+        onclick="if(confirm('Delete this team member permanently?')) { document.getElementById('delete-team-{{ member.id }}').submit(); }">
+        <i class="fas fa-trash"></i> Delete
+     </button>
 
       <button type="submit" class="btn btn-primary">Save Changes</button>
     </div>
     </form>
+
+          <!-- Hidden delete forms (moved outside main form to fix nested form issue) -->
+      {% for edu in member.education.all %}
+      <form id="delete-edu-{{ edu.id }}" method="post" action="{% url 'delete_education' edu.id %}" style="display:none;">
+        {% csrf_token %}
+      </form>
+      {% endfor %}
+
+      {% for ex in member.experience.all %}
+      <form id="delete-exp-{{ ex.id }}" method="post" action="{% url 'delete_experience' ex.id %}" style="display:none;">
+        {% csrf_token %}
+      </form>
+      {% endfor %}
+
+      {% for s in member.social_links.all %}
+      <form id="delete-social-{{ s.id }}" method="post" action="{% url 'delete_sociallink' s.id %}" style="display:none;">
+        {% csrf_token %}
+      </form>
+      {% endfor %}
+
+      <form id="delete-team-{{ member.id }}" method="post" action="{% url 'delete_team' member.id %}" style="display:none;">
+        {% csrf_token %}
+      </form>
+
   </div>
 </div>
 </div>
@@ -731,10 +745,18 @@
       <button type="button" class="remove-btn" onclick="removeForm(this)">×</button>
       <div class="form-row">
         <div class="form-group">
-          <label>Platform *</label>
-          <input type="text" name="new_platform[]" class="form-control" required>
+            <label>Platform *</label>
+            <select name="new_platform[]" class="form-control" required>
+              <option value="">-- Select Platform --</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="GitHub">GitHub</option>
+              <option value="Twitter">Twitter</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Other">Other</option>
+            </select>
         </div>
-        <div class="form-group">
+      <div class="form-group">
           <label>Profile URL *</label>
           <input type="url" name="new_link[]" class="form-control" required>
         </div>
