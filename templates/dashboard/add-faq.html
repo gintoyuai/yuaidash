@@ -342,18 +342,14 @@
                     <div class="form-section">
                         <h3 class="form-section-title">Settings</h3>
 
-                        {% if mode == 'admin_add' %}
+                       
                         <div class="form-group">
                             <label for="order">Display Order</label>
                             <input type="number" id="order" name="order" class="form-control" value="0" min="0">
                         </div>
-                        {% else %}
-                            <!-- for user_convert, hide order -->
-                            <input type="hidden" name="order" value="0">
-                        {% endif %}
+                        
                     </div>
 
-                    <!-- FORM BUTTONS -->
                     <div class="form-actions">
                         <button type="reset" class="btn btn-secondary">Reset</button>
 

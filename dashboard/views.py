@@ -229,7 +229,7 @@ def add_services(request):
 
     return render(request, 'dashboard/add-services.html')
 
-@login_required(login_url='login')
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -915,20 +915,15 @@ def blog(request):
 
 @login_required(login_url='login')
 def blog_detail(request, blog_id):
-  
     try:
-        blog = get_object_or_404(Blog, id=blog_id)
-        
+        blog = get_object_or_404(Blog, id=blog_id)      
         context = {
             'blog': blog,
-        }
-        
+        }       
         return render(request, 'dashboard/detail-blog.html', context)
-        
     except Blog.DoesNotExist:
         raise Http404("Blog post not found")
-
-@login_required(login_url='login')   
+  
 @csrf_exempt
 def toggle_save_comment(request, comment_id):
     if request.method == 'POST':
@@ -944,7 +939,6 @@ def toggle_save_comment(request, comment_id):
 @login_required(login_url='login')
 def faq_request(request):
     userfaq_queryset = UserFAQ.objects.all()
-    
     status_filter = request.GET.get('status', '')
     date_filter = request.GET.get('date', '')
     search_query = request.GET.get('search', '')
@@ -1560,6 +1554,6 @@ def approve_user_faq(request, id):
         return redirect('faq')
 
     return render(request, "dashboard/add-faq.html", {
-        "mode": "user_convert",   # <--- tells template this comes from UserFAQ
+        "mode": "user_convert",   # <--- tells template this comes from UserFAQ/one template render in diiferent logis...
         "faq": user_faq,
     })
