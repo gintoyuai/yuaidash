@@ -1,343 +1,446 @@
 {% extends "dashboard/mainbase.html" %}
 {% load static %}
-   
-{% block content %}   
 
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            <!-- HEADER -->
-            <div class="header">
-                <div class="header-left">
-                    <div class="menu-toggle" id="menu-toggle">
-                        <i class="fas fa-bars"></i>
-                    </div>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search queries...">
-                    </div>
-                </div>
+{% block content %}
 
-                <div class="header-right">
-                    <div class="header-action">
-                        <i class="far fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </div>
-                    <div class="header-action">
-                        <i class="far fa-envelope"></i>
-                        <span class="notification-badge">5</span>
-                    </div>
-                    <div class="user-profile">
-                        <div class="user-avatar">A</div>
-                        <div class="user-info">
-                            <div class="user-name">Admin User</div>
-                            <div class="user-role">Administrator</div>
-                        </div>
-                    </div>
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search queries...">
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-action">
+                <i class="far fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="header-action">
+                <i class="far fa-envelope"></i>
+                <span class="notification-badge">5</span>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Administrator</div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- CONTENT AREA -->
-            <div class="content">
-                <div class="content-header">
-                    <h1>User Queries</h1>
-                    <div class="breadcrumb">
-                        <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                        <span>Queries</span>
-                    </div>
+    <!-- CONTENT AREA -->
+    <div class="content">
+        <div class="content-header">
+            <h1>User Queries</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                <span>Queries</span>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="stat-number">{{ total_queries|default:0 }}</div>
+                <div class="stat-label">Total Queries</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="stat-number">{{ pending_queries|default:0 }}</div>
+                <div class="stat-label">Pending Queries</div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">{{ resolved_queries|default:0 }}</div>
+                <div class="stat-label">Resolved Queries</div>
+            </div>
+        </div>
+
+        <!-- Queries Header -->
+        <div class="queries-header">
+            <h2>Customer Enquiries</h2>
+            <div>
+                <a href="{% url 'export_queries_csv' %}" class="btn-primary">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="query-filters">
+            <form method="GET" action="{% url 'queries' %}" id="filterForm" class="query-filters" style="display: flex; gap: 15px; align-items: flex-end;">
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label for="status-filter">Status</label>
+                    <select name="status" id="status-filter" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Status</option>
+                        <option value="pending_queries" {% if request.GET.status == 'pending_queries' %}selected{% endif %}>Pending Queries</option>
+                        <option value="resolved_queries" {% if request.GET.status == 'resolved_queries' %}selected{% endif %}>Resolved Queries</option>
+                    </select>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="stats-cards">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="stat-number">24</div>
-                        <div class="stat-label">Total Queries</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-plus-circle"></i>
-                        </div>
-                        <div class="stat-number">8</div>
-                        <div class="stat-label">New Queries</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-spinner"></i>
-                        </div>
-                        <div class="stat-number">9</div>
-                        <div class="stat-label">In Progress</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-number">7</div>
-                        <div class="stat-label">Resolved</div>
-                    </div>
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label for="date-filter">Date</label>
+                    <select name="date" id="date-filter" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Dates</option>
+                        <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if request.GET.date == 'week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if request.GET.date == 'month' %}selected{% endif %}>This Month</option>
+                    </select>
                 </div>
 
-                <!-- Queries Header -->
-                <div class="queries-header">
-                    <h2>Customer Inquiries</h2>
-                    <div>
-                        <a href="#" class="btn-primary">
-                            <i class="fas fa-download"></i> Export CSV
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label for="search">Search</label>
+                    <input type="text" name="search" id="search" placeholder="Search queries..." value="{{ request.GET.search }}">
+                </div>
+
+            </form>
+        </div>
+
+            
+    
+
+        <!-- Queries List -->
+        <div class="queries-list" style="margin:20px;">
+            
+            {% for query in queries_obj %}
+            <div class="query-item" onclick="openQueryModal('{{ query.id }}', '{{ query.name|escapejs }}', '{{ query.email }}', '{{ query.phone|default:""|escapejs }}', '{{ query.subject|escapejs }}', `{{ query.message|escapejs }}`, '{{ query.status }}')" style="margin:20px;">
+                <div class="query-subject">
+                    <span>{{ query.subject }}</span>
+                    <span class="query-status status-{{ query.status|lower }}">{{ query.status }}</span>
+                </div>
+                <div class="query-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i> {{query.name}}
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-envelope"></i> {{query.email}}
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-phone"></i> {{query.phone}}
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i> {{query.status}}
+                    </div>
+                </div>
+                <div class="query-preview">
+                    {{query.message|truncatechars:100}}
+                </div>
+                <div class="query-actions">
+                    <a href="#" class="query-action-btn btn-view" 
+                       onclick="event.stopPropagation(); openQueryModal('{{ query.id }}', '{{ query.name|escapejs }}', '{{ query.email }}', '{{ query.phone|default:""|escapejs }}', '{{ query.subject|escapejs }}', `{{ query.message|escapejs }}`, '{{ query.status }}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                    
+                    {% if query.status == 'resolved' %}
+                        <span class="query-action-btn btn-disabled">
+                            <i class="fas fa-check-circle"></i> Responded
+                        </span>
+                    {% else %}
+                        <a href="#" class="query-action-btn" 
+                           onclick="event.stopPropagation(); openResponseModal('{{ query.id }}', '{{ query.email }}', '{{ query.subject|escapejs }}')">
+                            <i class="fas fa-reply"></i> Respond
                         </a>
-                    </div>
-                </div>
-
-                <!-- Filters -->
-                <div class="queries-filters">
-                    <div class="filter-group">
-                        <label for="status-filter">Status</label>
-                        <select id="status-filter">
-                            <option value="">All Status</option>
-                            <option value="new">New</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
+                    {% endif %}
                     
-                    <div class="filter-group">
-                        <label for="category-filter">Category</label>
-                        <select id="category-filter">
-                            <option value="">All Categories</option>
-                            <option value="general">General Inquiry</option>
-                            <option value="services">Services</option>
-                            <option value="support">Technical Support</option>
-                            <option value="billing">Billing</option>
-                            <option value="partnership">Partnership</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="date-filter">Date</label>
-                        <select id="date-filter">
-                            <option value="">All Dates</option>
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="search">Search</label>
-                        <input type="text" id="search" placeholder="Search queries...">
-                    </div>
-                </div>
-
-                <!-- Queries List -->
-                <div class="queries-list">
-                    <!-- Query 1 -->
-                     {% for query in queries_obj %}
-                    <div class="query-item" onclick="openQueryModal(1)">
-                        <div class="query-subject">
-                            <span>Website Development Inquiry</span>
-                            <span class="query-status status-new">New</span>
-                        </div>
-                        <div class="query-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-user"></i> {{query.name}}
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-envelope"></i> {{query.email}}
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-phone"></i> {{query.phone}}
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i> {{query.status}}
-                            </div>
-                        </div>
-                        <div class="query-preview">
-                            {{query.subject|truncatechars:100}}
-                        </div>
-                        <div class="query-actions">
-                            <a href="#" class="query-action-btn btn-view" onclick="event.stopPropagation(); openQueryModal(1)">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
-                            <a href="#" class="query-action-btn" onclick="event.stopPropagation()">
-                                <i class="fas fa-reply"></i> Respond
-                            </a>
-                            <a href="#" class="query-action-btn" onclick="event.stopPropagation()">
-                                <i class="fas fa-check"></i> Mark as Resolved
-                            </a>
-                        </div>
-                    </div>
-                 {% endfor %}
-                </div>
-
-                <!-- Pagination -->
-                <div class="pagination">
-                    <span class="current-page">1</span>
-                    <a href="#" class="page-link">2</a>
-                    <a href="#" class="page-link">3</a>
-                    <a href="#" class="page-link">4</a>
-                    <a href="#" class="page-link">5</a>
-                    <a href="#" class="page-link">&raquo;</a>
+                    {% if query.status == 'pending' %}
+                        <a href="{% url 'mark_query_resolved' query.id %}" 
+                           class="query-action-btn" 
+                           onclick="event.stopPropagation(); return confirm('Mark this query as resolved?')">
+                            <i class="fas fa-check"></i> Mark as Resolved
+                        </a>
+                    {% else %}
+                        <span class="query-action-btn btn-disabled">
+                            <i class="fas fa-check-circle"></i> Resolved
+                        </span>
+                    {% endif %}
                 </div>
             </div>
+            {% endfor %}
+        </div>
+
+
+        <div class="pagination">
+            {% for num in queries_obj.paginator.page_range %}
+                {% if queries_obj.number == num %}
+                    <span class="current-page">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if queries_obj.has_next %}
+                <a href="?page={{ queries_obj.next_page_number }}" class="page-link">&raquo;</a>
+            {% endif %}
+       </div>
+    </div>
+</div>
+
+
+<!-- Query Detail Modal -->
+<div class="modal" id="queryModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeQueryModal()">&times;</span>
+        <div class="modal-header">
+            <h2>Query Details</h2>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Content will be dynamically inserted here -->
         </div>
     </div>
+</div>
 
-    <!-- Query Detail Modal -->
-    <div class="modal" id="queryModal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeQueryModal()">&times;</span>
-            <div class="modal-header">
-                <h2>Query Details</h2>
+<!-- Response Modal -->
+<div class="modal" id="responseModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeResponseModal()">&times;</span>
+        <div class="modal-header">
+            <h2>Send Response</h2>
+        </div>
+        <div class="modal-body">
+            <div class="response-info">
+                <p><strong>Subject:</strong> <span id="responseQuerySubject"></span></p>
+                <p><strong>Recipient:</strong> <span id="responseQueryEmail"></span></p>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Content will be dynamically inserted here -->
-            </div>
-            <div class="reply-section">
-                <h3>Reply to Query</h3>
-                <textarea class="reply-textarea" placeholder="Type your response here..."></textarea>
+            
+            <form method="POST" action="{% url 'send_query_response' %}" id="responseForm">
+                {% csrf_token %}
+                <input type="hidden" name="query_id" id="responseQueryId">
+                
+                <div class="form-group">
+                    <label for="responseText">Your Response:</label>
+                    <textarea 
+                        name="response_text" 
+                        id="responseText" 
+                        rows="8" 
+                        class="form-control" 
+                        placeholder="Type your response here..."
+                        required
+                    ></textarea>
+                </div>
+                
                 <div class="modal-footer">
-                    <a href="#" class="query-action-btn">
-                        <i class="fas fa-paperclip"></i> Attach Files
-                    </a>
-                    <a href="#" class="query-action-btn btn-view">
+                    <button type="button" class="btn-secondary" onclick="closeResponseModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary">
                         <i class="fas fa-paper-plane"></i> Send Response
-                    </a>
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script>
-        // Toggle sidebar on mobile
-        document.getElementById('menu-toggle').addEventListener('click', function () {
-            document.getElementById('sidebar').classList.toggle('active');
-        });
+<style>
+.query-detail-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function (event) {
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
-            const isMobile = window.innerWidth <= 992;
+.query-detail-section h3 {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
 
-            if (isMobile && sidebar.classList.contains('active') &&
-                !sidebar.contains(event.target) &&
-                !menuToggle.contains(event.target)) {
-                sidebar.classList.remove('active');
-            }
-        });
+.query-detail-section p {
+    margin: 8px 0;
+    color: #555;
+    line-height: 1.6;
+}
 
-        // Modal functionality
-        function openQueryModal(queryId) {
-            const modal = document.getElementById('queryModal');
-            const modalBody = document.getElementById('modalBody');
-            
-            // Sample data - in a real application, this would come from a database
-            const queryData = {
-                1: {
-                    name: "Jennifer Lawson",
-                    email: "jennifer@lawsonenterprises.com",
-                    subject: "Website Development Inquiry",
-                    phone: "+1 (555) 123-4567",
-                    message: "We're looking to redesign our company website and would like to know more about your web development services. Our current site is outdated and not mobile-friendly. Could you provide information about your process, timeline, and pricing? We're particularly interested in:\n\n1. E-commerce functionality\n2. Blog integration\n3. Membership area\n4. Mobile responsiveness\n5. SEO optimization\n\nOur company, Lawson Enterprises, specializes in organic food products, and we need a website that reflects our brand values while being highly functional for our customers.\n\nPlease let us know the next steps and if you need any additional information from our end.",
-                    date: "2 hours ago",
-                    status: "New",
-                    category: "Services"
-                },
-                2: {
-                    name: "Michael Thompson",
-                    email: "m.thompson@techinnovate.io",
-                    subject: "Mobile App Development Timeline",
-                    phone: "+1 (555) 987-6543",
-                    message: "I'm interested in developing a mobile application for my startup. I'd like to understand the typical timeline for iOS and Android app development from concept to launch, and whether you offer ongoing maintenance services.\n\nOur app concept is a fitness tracking application with the following features:\n- User profiles and progress tracking\n- Workout plans and schedules\n- Social sharing capabilities\n- In-app purchases for premium content\n- Integration with wearable devices\n\nWe have basic wireframes ready but need professional development services. Could you provide a rough estimate of the timeline for such a project and what factors might affect the delivery date?",
-                    date: "1 day ago",
-                    status: "In Progress",
-                    category: "Services"
-                },
-                3: {
-                    name: "Sarah Williams",
-                    email: "sarah@williamsdesignstudio.com",
-                    subject: "Urgent: Website Not Loading",
-                    phone: "+1 (555) 456-7890",
-                    message: "URGENT: Our website suddenly stopped working this morning. Customers are reporting error messages when trying to access our site. This is affecting our business significantly.\n\nThe error message displayed is: 'Error establishing a database connection'.\n\nWe haven't made any recent changes to the site, and it was working fine as of last night. Our website is built on WordPress and hosted on your platform.\n\nPlease help us resolve this issue as soon as possible. We're losing business every minute the site is down.\n\nThank you for your immediate attention to this matter.",
-                    date: "3 days ago",
-                    status: "Resolved",
-                    category: "Technical Support"
-                },
-                4: {
-                    name: "David Chen",
-                    email: "dchen@globaltechpartners.com",
-                    subject: "Partnership Opportunity",
-                    phone: "+1 (555) 234-5678",
-                    message: "I represent Global Tech Partners, and we're interested in exploring partnership opportunities with YuaI Soft Solutions. We believe our companies could mutually benefit from a strategic partnership in the Asian market.\n\nGlobal Tech Partners has an established presence in Southeast Asia with offices in Singapore, Malaysia, and Indonesia. We specialize in IT infrastructure and cloud solutions for enterprise clients.\n\nWe've been impressed with YuaI's work in web and mobile development and believe there's significant synergy between our service offerings. We'd like to discuss:\n\n1. Potential referral partnerships\n2. Joint venture opportunities for large projects\n3. White-label arrangements for your development services\n4. Market expansion collaboration\n\nWould you be available for a virtual meeting next week to explore these possibilities further?",
-                    date: "4 days ago",
-                    status: "New",
-                    category: "Partnership"
-                },
-                5: {
-                    name: "Robert Johnson",
-                    email: "accounting@johnsonmanufacturing.com",
-                    subject: "Billing Inquiry - Invoice #INV-2023-0875",
-                    phone: "+1 (555) 765-4321",
-                    message: "I have a question regarding invoice #INV-2023-0875 dated October 15, 2023. There seems to be a discrepancy in the hours billed for the cloud migration project.\n\nAccording to our records, the project was estimated at 120 hours, but the invoice shows 145 hours billed. We'd like to understand the additional 25 hours and what tasks they correspond to.\n\nAdditionally, we noticed a charge for 'additional storage allocation' that wasn't discussed during our project planning meetings. Could you provide details on this charge?\n\nPlease send us an itemized breakdown of the hours and charges. We want to ensure we understand all aspects of the invoice before processing payment.\n\nThank you for your assistance in clarifying these billing questions.",
-                    date: "5 days ago",
-                    status: "In Progress",
-                    category: "Billing"
-                }
-            };
-            
-            const data = queryData[queryId];
-            
-            // Populate modal with data
-            modalBody.innerHTML = `
-                <div class="detail-group">
-                    <span class="detail-label">Subject</span>
-                    <p class="detail-value">${data.subject}</p>
-                </div>
-                
-                <div class="detail-group">
-                    <span class="detail-label">User Information</span>
-                    <p class="detail-value">
-                        <strong>Name:</strong> ${data.name}<br>
-                        <strong>Email:</strong> ${data.email}<br>
-                        <strong>Phone:</strong> ${data.phone}<br>
-                        <strong>Category:</strong> ${data.category}
-                    </p>
-                </div>
-                
-                <div class="detail-group">
-                    <span class="detail-label">Details</span>
-                    <p class="detail-value">
-                        <strong>Submitted:</strong> ${data.date}<br>
-                        <strong>Status:</strong> <span class="query-status status-${data.status.toLowerCase().replace(' ', '-')}">${data.status}</span>
-                    </p>
-                </div>
-                
-                <div class="detail-group">
-                    <span class="detail-label">Message</span>
-                    <div class="message-content">
-                        <p class="detail-value">${data.message.replace(/\n/g, '<br>')}</p>
-                    </div>
-                </div>
-            `;
-            
-            modal.style.display = "flex";
+.btn-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #e0e0e0 !important;
+}
+
+.response-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.response-info p {
+    margin: 8px 0;
+    color: #555;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-primary {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+</style>
+
+<script>
+    // Toggle sidebar on mobile
+    document.getElementById('menu-toggle').addEventListener('click', function () {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function (event) {
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        const isMobile = window.innerWidth <= 992;
+
+        if (isMobile && sidebar.classList.contains('active') &&
+            !sidebar.contains(event.target) &&
+            !menuToggle.contains(event.target)) {
+            sidebar.classList.remove('active');
         }
+    });
 
-        function closeQueryModal() {
-            document.getElementById('queryModal').style.display = "none";
+    // Modal functionality
+    function openQueryModal(queryId, queryName, queryEmail, queryPhone, querySubject, queryMessage, queryStatus) {
+        const modal = document.getElementById('queryModal');
+        const modalBody = document.getElementById('modalBody');
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
+        
+        // Populate modal with query details
+        modalBody.innerHTML = `
+            <div class="query-detail-section">
+                <h3><i class="fas fa-user"></i> Contact Information</h3>
+                <p><strong>Name:</strong> ${escapeHtml(queryName)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(queryEmail)}</p>
+                <p><strong>Phone:</strong> ${queryPhone ? escapeHtml(queryPhone) : 'Not provided'}</p>
+                <p><strong>Status:</strong> <span class="query-status status-${queryStatus.toLowerCase()}">${escapeHtml(queryStatus)}</span></p>
+            </div>
+            
+            <div class="query-detail-section">
+                <h3><i class="fas fa-envelope"></i> Subject</h3>
+                <p>${escapeHtml(querySubject)}</p>
+            </div>
+            
+            <div class="query-detail-section">
+                <h3><i class="fas fa-comment"></i> Message</h3>
+                <p style="white-space: pre-wrap;">${escapeHtml(queryMessage)}</p>
+            </div>
+        `;
+        
+        modal.style.display = "flex";
+    }
 
-        // Close modal when clicking outside
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('queryModal');
-            if (event.target === modal) {
-                closeQueryModal();
-            }
-        });
-    </script>
+    function openResponseModal(queryId, queryEmail, querySubject) {
+        const modal = document.getElementById('responseModal');
+        
+        // Set form values
+        document.getElementById('responseQueryId').value = queryId;
+        document.getElementById('responseQueryEmail').textContent = queryEmail;
+        document.getElementById('responseQuerySubject').textContent = querySubject;
+        document.getElementById('responseText').value = '';
+        
+        modal.style.display = "flex";
+    }
+
+    function closeQueryModal() {
+        document.getElementById('queryModal').style.display = "none";
+    }
+
+    function closeResponseModal() {
+        document.getElementById('responseModal').style.display = "none";
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        const queryModal = document.getElementById('queryModal');
+        const responseModal = document.getElementById('responseModal');
+        
+        if (event.target === queryModal) {
+            closeQueryModal();
+        }
+        if (event.target === responseModal) {
+            closeResponseModal();
+        }
+    });
+</script>
 
 {% endblock %}

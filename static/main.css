@@ -724,13 +724,13 @@
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
         
         .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;  /* Changed from min-width: 200px */
         }
         
         .filter-group label {

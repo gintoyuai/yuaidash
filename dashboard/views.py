@@ -1,8 +1,15 @@
-from datetime import date, timedelta, timezone
-import datetime
+from .models import *
+from home.models import *
+from datetime import date, timedelta
+
 from django.utils import timezone
+from django.db.models import Q
+from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -949,10 +956,68 @@ def toggle_save_comment(request, comment_id):
         })
     return JsonResponse({'status': 'error'}, status=400)
 
+
+
 def faq_request(request):
-    userfaq_obj = UserFAQ.objects.all()
-    context = {'userfaq_obj': userfaq_obj}  
-    return render(request, 'dashboard/faq-request.html',context)
+    # Base queryset
+    userfaq_queryset = UserFAQ.objects.all()
+    
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    date_filter = request.GET.get('date', '')
+    search_query = request.GET.get('search', '')
+    
+    # Apply status filter
+    if status_filter == 'unanswered_requests':
+        userfaq_queryset = userfaq_queryset.filter(status='unanswered')
+    elif status_filter == 'answered_requests':
+        userfaq_queryset = userfaq_queryset.filter(status='answered')
+    
+    # Apply date filter
+    if date_filter == 'today':
+        today = timezone.now().date()
+        userfaq_queryset = userfaq_queryset.filter(datetime__date=today)
+    elif date_filter == 'week':
+        week_ago = timezone.now() - timedelta(days=7)
+        userfaq_queryset = userfaq_queryset.filter(datetime__gte=week_ago)
+    elif date_filter == 'month':
+        month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        userfaq_queryset = userfaq_queryset.filter(datetime__gte=month_start)
+    
+    # Apply search filter
+    if search_query:
+        userfaq_queryset = userfaq_queryset.filter(
+            Q(question__icontains=search_query) | Q(email_id__icontains=search_query)
+        )
+    
+    # Order by datetime (newest first)
+    userfaq_queryset = userfaq_queryset.order_by('-datetime')
+    
+    # PAGINATION
+    paginator = Paginator(userfaq_queryset, 12)  # items per page
+    page_number = request.GET.get('page', 1)
+
+    try:
+        userfaq_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        userfaq_obj = paginator.page(1)
+    except EmptyPage:
+        userfaq_obj = paginator.page(paginator.num_pages)
+    
+    # Calculate statistics
+    total_requests = UserFAQ.objects.count()
+    unanswered_requests = UserFAQ.objects.filter(status='unanswered').count()
+    answered_requests = UserFAQ.objects.filter(status='answered').count()
+    
+    context = {
+        'userfaq_obj': userfaq_obj,
+        'total_requests': total_requests,
+        'unanswered_requests': unanswered_requests,
+        'answered_requests': answered_requests,
+    }
+    
+    return render(request, 'dashboard/faq-request.html', context)
+
 
 def faq(request):
     faq_obj = AdminFAQ.objects.all().order_by('-id')
@@ -970,9 +1035,158 @@ def faq(request):
 
 
 def queries(request):
+    #Base Queryset
     queries_obj = ContactUs.objects.all()
-    context = {'queries_obj': queries_obj}  
+    
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    date_filter = request.GET.get('date', '')
+    search_query = request.GET.get('search', '')
+    
+    # Apply status filter
+    if status_filter == 'pending_queries':
+        queries_obj = queries_obj.filter(status='pending')
+    elif status_filter == 'resolved_queries':
+        queries_obj = queries_obj.filter(status='resolved')
+        
+    # date filter CURRENTLY NOT POSSIBLE because datetime field is not in ContactUs model
+    
+    # if date_filter == 'today':
+    #     today = timezone.now().date()
+    #     queries_obj = queries_obj.filter(datetime__date=today)
+    # elif date_filter == 'week':
+    #     week_ago = timezone.now() - timedelta(days=7)
+    #     queries_obj = queries_obj.filter(datetime__gte=week_ago)
+    # elif date_filter == 'month':
+    #     month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    #     queries_obj = queries_obj.filter(datetime__gte=month_start)
+    
+    # Apply search filter
+    if search_query:
+        queries_obj = queries_obj.filter(
+            Q(subject__icontains=search_query) | 
+            Q(message__icontains=search_query) | 
+            Q(email__icontains=search_query) |
+            Q(name__icontains=search_query)
+         ) 
+        
+    # Order by id (newest first)
+    queries_obj = queries_obj.order_by('-id')
+    
+    # PAGINATION
+    
+    paginator = Paginator(queries_obj, 12)  # items per page
+    page_number = request.GET.get('page', 1)
+
+    try:
+        queries_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        queries_obj = paginator.page(1)
+    except EmptyPage:
+        queries_obj = paginator.page(paginator.num_pages)
+    
+    #Calculate statistics
+    total_queries = ContactUs.objects.count()
+    pending_queries = ContactUs.objects.filter(status='pending').count()
+    resolved_queries = ContactUs.objects.filter(status='resolved').count()
+    
+    context = {
+        'queries_obj': queries_obj,
+        'total_queries':total_queries,
+        'pending_queries':pending_queries,
+        'resolved_queries':resolved_queries,
+        }  
     return render(request, 'dashboard/queries.html', context)
+
+
+def send_query_response(request):
+    """Handle sending email response to contact query"""
+    if request.method == 'POST':
+        query_id = request.POST.get('query_id')
+        response_text = request.POST.get('response_text')
+        
+        # Get the query
+        query = get_object_or_404(ContactUs, id=query_id)
+        
+        # Send email to user
+        subject = f"Re: {query.subject}"
+        message = f"""
+Dear {query.name},
+
+Thank you for contacting us regarding: "{query.subject}"
+
+Here is our response:
+
+{response_text}
+
+Best regards,
+Support Team
+        """
+        
+        try:
+            send_mail(
+                subject,
+                message,
+                None,  # Uses DEFAULT_FROM_EMAIL from settings
+                [query.email],
+                fail_silently=False,
+            )
+            
+            # Update status to resolved
+            query.status = 'resolved'
+            query.save()
+            
+            messages.success(request, f'Response sent successfully to {query.email}')
+        except Exception as e:
+            messages.error(request, f'Failed to send response: {str(e)}')
+        
+        return redirect('queries')
+    
+    return redirect('queries')
+
+
+def mark_query_resolved(request, query_id):
+    """Mark a query as resolved without sending email"""
+    query = get_object_or_404(ContactUs, id=query_id)
+    query.status = 'resolved'
+    query.save()
+    messages.success(request, 'Query marked as resolved')
+    return redirect('queries')
+
+import csv  # Add this at the top if not present
+
+def export_queries_csv(request):
+    """Export all contact queries to CSV file"""
+    
+    # Create the CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="contact_queries.csv"'
+    
+    # Create CSV writer
+    writer = csv.writer(response)
+    
+    # Write the header row
+    writer.writerow(['ID', 'Name', 'Email', 'Phone', 'Subject', 'Message', 'Status', 'Date'])
+    
+    # Get all ContactUs objects from database
+    queries = ContactUs.objects.all().order_by('-id')
+    
+    # Write each query as a row
+    for query in queries:
+        writer.writerow([
+            query.id,
+            query.name,
+            query.email,
+            query.phone if query.phone else '',  # Show empty if no phone
+            query.subject,
+            query.message,
+            query.status,
+            'N/A'  # Date field not available in ContactUs model
+        ])
+    
+    # Return the CSV file
+    return response
+
 
 def ref(request):
     return render(request, 'dashboard/ref.html')
@@ -1010,10 +1224,56 @@ def service_detail(request, service_id):
     return render(request, 'dashboard/detail-service.html', context)
 
 def team(request):
-    team_obj = Team.objects.all()
-    context = {'team_obj': team_obj}
+    """Display team members with filtering and pagination (12 per page)"""
+    
+    # Start with all team members
+    team_list = Team.objects.all()
+    
+    # Get filter parameters from URL query string
+    role_filter = request.GET.get('role', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    sort_by = request.GET.get('sort', '-id')
+    
+    # Apply role filter if provided
+    if role_filter:
+        team_list = team_list.filter(role=role_filter)
+    
+    # Apply status filter if provided
+    if status_filter:
+        team_list = team_list.filter(status=status_filter)
+    
+    # Apply sorting with validation (prevent SQL injection)
+    allowed_sort_fields = [
+        'name', '-name',
+        'role', '-role',
+        'id', '-id',
+        'experience_years', '-experience_years'
+    ]
+    
+    if sort_by in allowed_sort_fields:
+        team_list = team_list.order_by(sort_by)
+    else:
+        team_list = team_list.order_by('-id')  # Default: newest first
+    
+    # Extract unique roles for dropdown
+    roles = Team.objects.values_list('role', flat=True).distinct().order_by('role')
+    
+    # Create paginator 
+    paginator = Paginator(team_list, 2)
+    page_number = request.GET.get('page', 1)
+    try:
+        team_list = paginator.page(page_number)
+    except PageNotAnInteger:
+        team_list = paginator.page(1)
+    except EmptyPage:
+        team_list = paginator.page(paginator.num_pages)
+    
+    context = {
+        'team_obj': team_list,
+        'roles': roles,
+    }
     return render(request, 'dashboard/team.html', context)
-
+   
 
 def team_detail(request, team_id):
     team_member = get_object_or_404(Team, id=team_id)
@@ -1288,3 +1548,68 @@ def send_faq_response(request):
         return redirect('faq_request')
     
     return redirect('faq_request')
+
+
+def add_to_faq(request, userfaq_id):
+    """Convert a UserFAQ entry to AdminFAQ"""
+    if request.method == 'POST':
+        # Get the UserFAQ object
+        userfaq = get_object_or_404(UserFAQ, id=userfaq_id)
+
+        # Check if this UserFAQ has already been added to AdminFAQ
+        existing_faq = AdminFAQ.objects.filter(
+            question=userfaq.question,
+            email_id=userfaq.email_id
+        ).exists()
+
+        if existing_faq:
+            messages.warning(request, 'This question has already been added to the FAQ list.')
+            return redirect('faq_request')
+
+        # Create new AdminFAQ from UserFAQ
+        admin_faq = AdminFAQ(
+            question=userfaq.question,
+            answer=userfaq.answer if userfaq.answer else '',
+            email_id=userfaq.email_id,
+            status=userfaq.status,
+            order=0  # Default order
+        )
+
+        admin_faq.save()
+
+        messages.success(request, 'FAQ added to public FAQ list successfully!')
+        return redirect('faq_request')
+
+    return redirect('faq_request')
+
+
+
+def export_faq_csv(request):
+    """Export all FAQ requests to CSV file"""
+    
+    # Create the CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="faq_requests.csv"'
+    
+    # Create CSV writer
+    writer = csv.writer(response)
+    
+    # Write the header row
+    writer.writerow(['ID', 'Question', 'Email', 'Answer', 'Status', 'Date Submitted'])
+    
+    # Get all UserFAQ objects from database
+    faq_requests = UserFAQ.objects.all().order_by('-datetime')
+    
+    # Write each FAQ request as a row
+    for faq in faq_requests:
+        writer.writerow([
+            faq.id,
+            faq.question,
+            faq.email_id,
+            faq.answer if faq.answer else '',  # Show empty if no answer
+            faq.status,
+            faq.datetime.strftime('%d-%m-%Y %H:%M')  # Format: 15-01-2024 14:30
+        ])
+    
+    # Return the CSV file
+    return response

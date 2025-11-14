@@ -48,7 +48,7 @@
                 <div class="stat-icon">
                     <i class="fas fa-question"></i>
                 </div>
-                <div class="stat-number">18</div>
+                <div class="stat-number">{{ total_requests|default:0 }}</div>
                 <div class="stat-label">Total Requests</div>
             </div>
 
@@ -56,73 +56,65 @@
                 <div class="stat-icon">
                     <i class="fas fa-plus-circle"></i>
                 </div>
-                <div class="stat-number">7</div>
-                <div class="stat-label">New Requests</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-spinner"></i>
-                </div>
-                <div class="stat-number">6</div>
-                <div class="stat-label">In Progress</div>
+                <div class="stat-number">{{ unanswered_requests|default:0 }}</div>
+                <div class="stat-label">Unanswered Requests</div>
             </div>
 
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-number">5</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-number">{{ answered_requests|default:0 }}</div>
+                <div class="stat-label">Answered Requests</div>
             </div>
         </div>
 
         <div class="faq-request-header">
             <h2>User Questions & Requests</h2>
             <div>
-                <a href="#" class="btn-primary">
+                <a href="{% url 'export_faq_csvs' %}" class="btn-primary">
                     <i class="fas fa-download"></i> Export CSV
                 </a>
             </div>
         </div>
 
         <div class="faq-request-filters">
-            <div class="filter-group">
-                <label for="status-filter">Status</label>
-                <select id="status-filter">
-                    <option value="">All Status</option>
-                    <option value="new">New</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                </select>
-            </div>
+            <form method="GET" action="{% url 'faq_request' %}" id="filterForm" class="faq-request-filters">
+                <div class="filter-group">
+                    <label for="status-filter">Status</label>
+                    <select name="status" id="status-filter" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Status</option>
+                        <option value="unanswered_requests" {% if request.GET.status == 'unanswered_requests' %}selected{% endif %}>Unanswered Requests</option>
+                        <option value="answered_requests" {% if request.GET.status == 'answered_requests' %}selected{% endif %}>Answered Requests</option>
+                    </select>
+                </div>
 
-            <div class="filter-group">
-                <label for="category-filter">Category</label>
-                <select id="category-filter">
-                    <option value="">All Categories</option>
-                    <option value="general">General</option>
-                    <option value="services">Services</option>
-                    <option value="pricing">Pricing</option>
-                    <option value="technical">Technical</option>
-                    <option value="support">Support</option>
-                </select>
-            </div>
+                <div class="filter-group">
+                    <label for="date-filter">Date</label>
+                    <select name="date" id="date-filter" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Dates</option>
+                        <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if request.GET.date == 'week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if request.GET.date == 'month' %}selected{% endif %}>This Month</option>
+                    </select>
+                </div>
 
-            <div class="filter-group">
-                <label for="date-filter">Date</label>
-                <select id="date-filter">
-                    <option value="">All Dates</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                </select>
-            </div>
+                <div class="filter-group">
+                    <label for="search">Search</label>
+                    <input type="text" name="search" id="search" placeholder="Search requests..." value="{{ request.GET.search }}">
+                </div>
+            </form>
 
-            <div class="filter-group">
-                <label for="search">Search</label>
-                <input type="text" id="search" placeholder="Search requests...">
-            </div>
+            <!-- <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn-primary" style="padding: 8px 20px;">
+                        <i class="fas fa-filter"></i> Filter</button>
+                    <a href="{% url 'faq_request' %}" class="btn-secondary"
+                        style="padding: 8px 20px; text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div> -->
+
         </div>
 
         <div class="faq-request-list">
@@ -155,49 +147,82 @@
                         onclick="openRequestModal('{{ userfaq.id }}', '{{ userfaq.question }}', '{{ userfaq.email_id }}', '{{ userfaq.datetime }}', '{{ userfaq.status }}')">
                         <i class="fas fa-eye"></i> View Full Request
                     </a>
+                    {% if userfaq.status == 'answered' %}
+                    <span class="faq-request-action-btn btn-disabled">
+                        <i class="fas fa-check-circle"></i> Responded
+                    </span>
+                    {% else %}
                     <a href="#" class="faq-request-action-btn"
                         onclick="openResponseModal('{{ userfaq.id }}', '{{ userfaq.email_id }}', '{{ userfaq.question }}')">
                         <i class="fas fa-reply"></i> Respond
                     </a>
+                    {% endif %}
+
                     <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
                         <i class="fas fa-check"></i> Add to FAQ
                     </a>
+
+                    <!-- <form method="POST" action="{% url 'add_to_faq' userfaq.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="faq-request-action-btn"
+                            style="border:none; background:transparent; cursor:pointer;">
+                            <i class="fas fa-check"></i> Add to FAQ
+                        </button>
+                    </form> -->
+
                 </div>
             </div>
+
+            <div class="modal" id="requestModal">
+                <div class="modal-content">
+                    <span class="modal-close" onclick="closeRequestModal()">&times;</span>
+                    <div class="modal-header">
+                        <h2>FAQ Request Details</h2>
+                    </div>
+                    <div class="modal-body" id="modalBody">
+                    </div>
+                    <div class="modal-footer">
+                        {% if userfaq.status == 'answered' %}
+                        <span class="faq-request-action-btn btn-disabled">
+                            <i class="fas fa-check-circle"></i> Responded
+                        </span>
+                        {% else %}
+                        <a href="#" class="faq-request-action-btn" id="modalRespondBtn" <i class="fas fa-reply"></i>
+                            Respond
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
+                            <i class="fas fa-check"></i> Add to FAQ
+                        </a>
+                        <a href="#" class="faq-request-action-btn btn-view" onclick="closeRequestModal()">
+                            <i class="fas fa-times"></i> Close
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             {% endfor %}
+
         </div>
 
         <div class="pagination">
-            <span class="current-page">1</span>
-            <a href="#" class="page-link">2</a>
-            <a href="#" class="page-link">3</a>
-            <a href="#" class="page-link">4</a>
-            <a href="#" class="page-link">&raquo;</a>
-        </div>
+        {% for num in userfaq_obj.paginator.page_range %}
+            {% if userfaq_obj.number == num %}
+                <span class="current-page">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if userfaq_obj.has_next %}
+            <a href="?page={{ userfaq_obj.next_page_number }}" class="page-link">&raquo;</a>
+        {% endif %}
+       </div>
+
     </div>
 </div>
 
-<div class="modal" id="requestModal">
-    <div class="modal-content">
-        <span class="modal-close" onclick="closeRequestModal()">&times;</span>
-        <div class="modal-header">
-            <h2>FAQ Request Details</h2>
-        </div>
-        <div class="modal-body" id="modalBody">
-        </div>
-        <div class="modal-footer">
-            <a href="#" class="faq-request-action-btn" id="modalRespondBtn">
-                <i class="fas fa-reply"></i> Respond
-            </a>
-            <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
-                <i class="fas fa-check"></i> Add to FAQ
-            </a>
-            <a href="#" class="faq-request-action-btn btn-view" onclick="closeRequestModal()">
-                <i class="fas fa-times"></i> Close
-            </a>
-        </div>
-    </div>
-</div>
 
 <!-- Response Modal with Form -->
 <div class="modal" id="responseModal">
@@ -217,7 +242,8 @@
                 <input type="hidden" name="faq_id" id="formFaqId">
                 <div class="form-group">
                     <label for="responseText">Your Response:</label>
-                    <textarea name="response_text" id="responseText" rows="6" placeholder="Type your response here..." required></textarea>
+                    <textarea name="response_text" id="responseText" rows="6" placeholder="Type your response here..."
+                        required></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -230,10 +256,10 @@
             </div>
         </form>
     </div>
-</div> 
+</div>
 
 <script>
-    function openRequestModal(requestId, question, email, datetime,status) {
+    function openRequestModal(requestId, question, email, datetime, status) {
         const modal = document.getElementById('requestModal');
         const modalBody = document.getElementById('modalBody');
 
@@ -313,6 +339,14 @@
 </script>
 
 <style>
+    .btn-disabled {
+        background-color: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
     .modal {
         display: none;
         position: fixed;
