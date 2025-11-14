@@ -63,7 +63,7 @@ a:focus,
 a:focus,
 a:hover {
     text-decoration: none;
-    color:#00579a;
+    color:#00579A;
 }
 
 h1 a,
@@ -112,13 +112,13 @@ li {
 /* input:focus,
 button:focus
 {
-	border-color:#00579a;
-	outline-color:#00579a;
-    border: 1px solid #00579a;
+	border-color:#FF3C00;
+	outline-color:#FF3C00;
+    border: 1px solid #FF3C00;
 } */
 textarea:focus{
-	border-color:#00579a;
-	outline-color:#00579a;
+	border-color:#F16722;
+	outline-color:#F16722;
 }
 label {
     color: #fff;

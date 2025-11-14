@@ -1,6 +1,6 @@
 a.meanmenu-reveal{display:none}
 .mean-container .mean-bar {
-  background: #00579a;
+  background: #00579A;
   float: left;
   min-height: 60px;
   padding: 4px 0 0;
@@ -125,7 +125,7 @@ a.meanmenu-reveal{display:none}
 }
 .mean-container .mean-bar::before {
 	color: #fff;
-	content: "solutek";
+	content: "YUAI Soft Solutions";
 	font-size: 28px;
 	font-weight: 600;
 	left: 10px;

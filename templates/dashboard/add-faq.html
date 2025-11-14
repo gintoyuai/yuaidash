@@ -139,22 +139,9 @@
         font-size: 13px;
     }
 
-    .faq-status {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 12px;
-    }
 
-    .status-unanswered {
-        background: #ffe8e8;
-        color: #dc3545;
-    }
 
-    .status-answered {
-        background: #e8f4ff;
-        color: #0d6efd;
-    }
+
 
     .faq-email {
         color: #666;
@@ -264,15 +251,11 @@
 
 <!-- MAIN CONTENT -->
 <div class="main-content">
-    <!-- HEADER -->
+    <!-- HEADER AREA -->
     <div class="header">
         <div class="header-left">
             <div class="menu-toggle" id="menu-toggle">
                 <i class="fas fa-bars"></i>
-            </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search FAQs...">
             </div>
         </div>
 
@@ -295,15 +278,14 @@
         </div>
     </div>
 
-    <!-- CONTENT AREA -->
+    <!-- PAGE CONTENT -->
     <div class="content">
         <div class="content-header">
-            <h1>FAQ Management</h1>
-            <div class="breadcrumb">
-                <a href="#">Home</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                <a href="{% url 'faq' %}">FAQs</a> <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                <span>Manage FAQs</span>
-            </div>
+            {% if mode == "user_convert" %}
+                <h1>Approve User FAQ</h1>
+            {% else %}
+                <h1>Add New FAQ</h1>
+            {% endif %}
         </div>
 
         {% if messages %}
@@ -314,64 +296,80 @@
         </div>
         {% endif %}
 
-
         <div class="faq-management">
-            <!-- Add FAQ Form -->
             <div class="faq-form-container">
-                <h2>Add New FAQ</h2>
 
-                <form method="POST" action="{% url 'add_faq' %}">
+                {% if mode == "user_convert" %}
+                    <h2>Approve User FAQ</h2>
+                    <form method="POST" action="{% url 'approve_user_faq' faq.id %}">
+                {% else %}
+                    <h2>Add New FAQ</h2>
+                    <form method="POST" action="{% url 'add_faq' %}">
+                {% endif %}
+                
                     {% csrf_token %}
 
-                    <!-- Basic Information Section -->
+                    <!-- FAQ DETAILS -->
                     <div class="form-section">
                         <h3 class="form-section-title">FAQ Details</h3>
 
                         <div class="form-group">
                             <label for="question">Question *</label>
-                            <textarea id="question" name="question" class="form-control" required></textarea>
+                            <textarea id="question" name="question" class="form-control" required>
+{% if mode == 'user_convert' %}{{ faq.question }}{% endif %}
+                            </textarea>
                         </div>
 
                         <div class="form-group">
                             <label for="answer">Answer</label>
-                            <textarea id="answer" name="answer" class="form-control"></textarea>
+                            <textarea id="answer" name="answer" class="form-control">
+{% if mode == 'user_convert' %}{{ faq.answer }}{% endif %}
+                            </textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="email_id">Email Address *</label>
-                            <input type="email" id="email_id" name="email_id" class="form-control" required>
+                            <label for="email_id">Email *</label>
+                            <input type="email"
+                                   id="email_id"
+                                   name="email_id"
+                                   class="form-control"
+                                   value="{% if mode == 'user_convert' %}{{ faq.email_id }}{% endif %}"
+                                   required>
                         </div>
                     </div>
 
-                    <!-- Settings Section -->
+                    <!-- SETTINGS SECTION -->
                     <div class="form-section">
                         <h3 class="form-section-title">Settings</h3>
 
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select id="status" name="status" class="form-control">
-                                <option value="unanswered">Unanswered</option>
-                                <option value="answered">Answered</option>
-                            </select>
-                        </div>
-
+                        {% if mode == 'admin_add' %}
                         <div class="form-group">
                             <label for="order">Display Order</label>
                             <input type="number" id="order" name="order" class="form-control" value="0" min="0">
                         </div>
+                        {% else %}
+                            <!-- for user_convert, hide order -->
+                            <input type="hidden" name="order" value="0">
+                        {% endif %}
                     </div>
 
-                    <!-- Form Actions -->
+                    <!-- FORM BUTTONS -->
                     <div class="form-actions">
                         <button type="reset" class="btn btn-secondary">Reset</button>
-                        <button type="submit" class="btn btn-primary">Save FAQ</button>
+
+                        {% if mode == 'user_convert' %}
+                            <button type="submit" class="btn btn-primary">Approve & Publish FAQ</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary">Save FAQ</button>
+                        {% endif %}
                     </div>
+
                 </form>
 
-                
             </div>
         </div>
     </div>
+
 </div>
 
 <script>

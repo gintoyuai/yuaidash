@@ -26,6 +26,7 @@ from .models import *
 from home.models import *
 
 # Add pages
+@login_required(login_url='login')
 def add_blog(request):
     if request.method == 'POST':      
         name = request.POST.get('name')
@@ -58,7 +59,7 @@ def add_blog(request):
         return redirect('blog')  
     return render(request, 'dashboard/add-blog.html')
 
-
+@login_required(login_url='login')
 def edit_blog(request, pk):
     blog = get_object_or_404(Blog, pk=pk)
     existing_images = blog.blog_images.all()
@@ -102,7 +103,7 @@ def edit_blog(request, pk):
     return render(request, 'dashboard/edit-blog.html', {'blog': blog ,'existing_images': existing_images})
 
 
-
+@login_required(login_url='login')
 def delete_blog(request, pk):
     blog = get_object_or_404(Blog, pk=pk)
     blog.delete()
@@ -110,48 +111,36 @@ def delete_blog(request, pk):
     return redirect('blog')   
 
 
-
+@login_required(login_url='login')
 def add_faq(request):
     if request.method == "POST":
         question = request.POST.get('question')
         answer = request.POST.get('answer', '')
         email_id = request.POST.get('email_id')
         order = request.POST.get('order', 0)
-        status = request.POST.get('status', 'unanswered')
 
-        # Validate required fields
         if not all([question, email_id]):
             messages.error(request, "Question and Email are required fields.")
             return redirect('add_faq')
 
-        # Validate email
         try:
             validate_email(email_id)
         except ValidationError:
             messages.error(request, "Please enter a valid email address.")
             return redirect('add_faq')
 
-        # Validate order
         try:
             order = int(order)
         except (ValueError, TypeError):
             order = 0
 
-        # Normalize status
-        if status not in ['unanswered', 'answered']:
-            status = 'unanswered'
-
-        if answer and status == 'unanswered':
-            status = 'answered'
-        elif not answer and status == 'answered':
-            status = 'unanswered'
         try:
             AdminFAQ.objects.create(
                 question=question,
                 answer=answer,
                 email_id=email_id,
                 order=order,
-                status=status
+                
             )
             messages.success(request, "FAQ added successfully!")
             return redirect('faq')
@@ -161,6 +150,7 @@ def add_faq(request):
 
     return render(request, 'dashboard/add-faq.html')
 
+@login_required(login_url='login')
 def edit_faq(request, faq_id):
     faq = get_object_or_404(AdminFAQ, id=faq_id)
 
@@ -170,7 +160,6 @@ def edit_faq(request, faq_id):
             answer = request.POST.get('answer', '')
             email_id = request.POST.get('email_id')
             order = request.POST.get('order', 0)
-            status = request.POST.get('status', 'unanswered')
 
             if not all([question, email_id]):
                 messages.error(request, "Question and Email are required fields.")
@@ -186,7 +175,6 @@ def edit_faq(request, faq_id):
             faq.answer = answer
             faq.email_id = email_id
             faq.order = int(order) if order else 0
-            faq.status = status if status in ['unanswered', 'answered'] else 'unanswered'
             faq.save()
 
             messages.success(request, "FAQ updated successfully!")
@@ -199,7 +187,7 @@ def edit_faq(request, faq_id):
     context = {'faq': faq}
     return render(request, 'dashboard/edit-faq.html', context)
 
-
+@login_required(login_url='login')
 def delete_faq(request, faq_id):
     faq = get_object_or_404(AdminFAQ, id=faq_id)
     faq.delete()
@@ -207,7 +195,7 @@ def delete_faq(request, faq_id):
     return redirect('faq')
 
 
-
+@login_required(login_url='login')
 def add_services(request):
     if request.method == 'POST':
         try:
@@ -241,6 +229,7 @@ def add_services(request):
 
     return render(request, 'dashboard/add-services.html')
 
+@login_required(login_url='login')
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -258,11 +247,13 @@ def login_view(request):
     
     return render(request, 'dashboard/logindash.html')
 
+@login_required(login_url='login')
 def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('login')
 
+@login_required(login_url='login')
 def edit_service(request, pk):
     service = get_object_or_404(Service, pk=pk)
     if request.method == 'POST':
@@ -308,7 +299,7 @@ def edit_service(request, pk):
     })
     
     
-
+@login_required(login_url='login')
 def add_service_details(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
 
@@ -342,12 +333,11 @@ def add_service_details(request, service_id):
             messages.error(request, f'Error adding details: {str(e)}')
             return redirect('service_detail', service_id=service.id)
 
-    # 👇 GET request → render form
     return render(request, 'dashboard/add-servicedetails.html', {
         'service': service
     })
 
-
+@login_required(login_url='login')
 def edit_service_detail(request, detail_id):
     service_detail = get_object_or_404(ServiceDetail, pk=detail_id)
     service = service_detail.service
@@ -387,6 +377,7 @@ def edit_service_detail(request, detail_id):
         'service_detail': service_detail
     })
 
+@login_required(login_url='login')
 def delete_service(request, pk):
     service = get_object_or_404(Service, pk=pk)
     try:
@@ -398,7 +389,7 @@ def delete_service(request, pk):
         return redirect('edit_service', pk=pk)
 
 
-@login_required
+@login_required(login_url='login')
 def delete_service_detail(request, pk):
     detail = get_object_or_404(ServiceDetail, pk=pk)
     service_pk = detail.service_id
@@ -416,7 +407,7 @@ def delete_service_detail(request, pk):
     messages.error(request, "Invalid request method.")
     return redirect('service_detail', service_id=service_pk)
 
-
+@login_required(login_url='login')
 def add_team(request):
     if request.method == "POST":
         try:
@@ -476,7 +467,6 @@ def add_team(request):
                         certification=certifications[i] if i < len(certifications) else ''
                     )
 
-            # Experience
             company_names = request.POST.getlist('company_name[]')
             job_titles = request.POST.getlist('job_title[]')
             start_dates = request.POST.getlist('start_date[]')
@@ -494,7 +484,6 @@ def add_team(request):
                         job_description=job_descriptions[i] if i < len(job_descriptions) else ''
                     )
 
-            # Social Links
             platforms = request.POST.getlist('platform[]')
             links = request.POST.getlist('link[]')
 
@@ -515,6 +504,7 @@ def add_team(request):
             return redirect('add_team')
     return render(request, 'dashboard/add-team.html')
 
+@login_required(login_url='login')
 def edit_team(request, pk):
     member = get_object_or_404(Team, pk=pk)
     
@@ -550,14 +540,12 @@ def edit_team(request, pk):
                 try:
                     member.experience_years = int(experience_years)
                 except Exception:
-                    # keep existing if invalid
                     pass
                 member.current_project = current_project
                 member.portfolio = portfolio
                 member.status = status
 
                 if 'photo' in request.FILES and request.FILES['photo']:
-                    # delete old file to avoid orphan
                     if getattr(member, 'photo', None):
                         try:
                             member.photo.delete(save=False)
@@ -710,6 +698,7 @@ def edit_team(request, pk):
 
     return render(request, 'dashboard/edit-team.html', {'member': member})
 
+@login_required(login_url='login')
 @require_POST
 def delete_team(request, pk):
     """
@@ -718,10 +707,8 @@ def delete_team(request, pk):
     """
     member = get_object_or_404(Team, pk=pk)
 
-    # TODO: permission checks if needed
     try:
         with transaction.atomic():
-            # delete related files: photo, cv
             if getattr(member, 'photo', None):
                 try:
                     member.photo.delete(save=False)
@@ -732,8 +719,6 @@ def delete_team(request, pk):
                     member.cv.delete(save=False)
                 except Exception:
                     pass
-
-            # delete the member (cascade deletes related rows)
             member.delete()
             messages.success(request, "Team member deleted.")
             return redirect('team')
@@ -741,6 +726,7 @@ def delete_team(request, pk):
         messages.error(request, f"Failed to delete member: {e}")
         return redirect('edit_team', pk=pk)
 
+@login_required(login_url='login')
 @require_POST
 def delete_education(request, pk):
     edu = get_object_or_404(Education, pk=pk)
@@ -753,6 +739,7 @@ def delete_education(request, pk):
     return redirect('edit_team', pk=member_pk)
 
 
+@login_required(login_url='login')
 @require_POST
 def delete_experience(request, pk):
     ex = get_object_or_404(Experience, pk=pk)
@@ -764,7 +751,7 @@ def delete_experience(request, pk):
         messages.error(request, f"Failed to delete experience entry: {e}")
     return redirect('edit_team', pk=member_pk)
 
-
+@login_required(login_url='login')
 @require_POST
 def delete_sociallink(request, pk):
     s = get_object_or_404(SocialLink, pk=pk)
@@ -776,8 +763,7 @@ def delete_sociallink(request, pk):
         messages.error(request, f"Failed to delete social link: {e}")
     return redirect('edit_team', pk=member_pk)
 
-
-
+@login_required(login_url='login')
 def add_testimonial(request):
     if request.method == "POST":
         try:
@@ -814,6 +800,7 @@ def add_testimonial(request):
              
     return render(request, 'dashboard/add-testimonial.html')
 
+@login_required(login_url='login')
 def edit_testimonial(request, testimonial_id):
     testimonial = get_object_or_404(Testimonial, id=testimonial_id)
     
@@ -835,13 +822,11 @@ def edit_testimonial(request, testimonial_id):
             except (ValueError, TypeError):
                 rating = 5  
 
-            # Update testimonial fields
             testimonial.name = name
             testimonial.designation = designation
             testimonial.rating = rating
             testimonial.testimonial_notes = testimonial_notes
             
-            # Handle photo update
             if 'photo' in request.FILES:
                 testimonial.photo = request.FILES['photo']
                 
@@ -853,13 +838,13 @@ def edit_testimonial(request, testimonial_id):
             messages.error(request, f"Error updating testimonial: {str(e)}")
             return redirect('edit_testimonial', testimonial_id=testimonial_id)
     
-    # Pre-fill form with existing data
     context = {
         'testimonial': testimonial,
         'edit_mode': True
     }
     return render(request, 'dashboard/edit-testimonial.html', context)
 
+@login_required(login_url='login')
 def delete_testimonial(request, testimonial_id):
     if request.method == "POST":
         try:
@@ -872,8 +857,7 @@ def delete_testimonial(request, testimonial_id):
     return redirect('testimonial')
 
 
-
-
+@login_required(login_url='login')
 def yuaidash(request):
     today = date.today()
     last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
@@ -906,7 +890,7 @@ def yuaidash(request):
     }
     return render(request, 'dashboard/yuaidash.html', context)
 
-
+@login_required(login_url='login')
 def blog(request):
     blog_obj = Blog.objects.all().annotate(comment_count=Count('blog_comments')).order_by('-date', '-time')
 
@@ -929,7 +913,7 @@ def blog(request):
 
     return render(request, 'dashboard/blog.html', context)
 
-
+@login_required(login_url='login')
 def blog_detail(request, blog_id):
   
     try:
@@ -943,7 +927,8 @@ def blog_detail(request, blog_id):
         
     except Blog.DoesNotExist:
         raise Http404("Blog post not found")
-    
+
+@login_required(login_url='login')   
 @csrf_exempt
 def toggle_save_comment(request, comment_id):
     if request.method == 'POST':
@@ -956,24 +941,19 @@ def toggle_save_comment(request, comment_id):
         })
     return JsonResponse({'status': 'error'}, status=400)
 
-
-
+@login_required(login_url='login')
 def faq_request(request):
-    # Base queryset
     userfaq_queryset = UserFAQ.objects.all()
     
-    # Get filter parameters
     status_filter = request.GET.get('status', '')
     date_filter = request.GET.get('date', '')
     search_query = request.GET.get('search', '')
     
-    # Apply status filter
     if status_filter == 'unanswered_requests':
         userfaq_queryset = userfaq_queryset.filter(status='unanswered')
     elif status_filter == 'answered_requests':
         userfaq_queryset = userfaq_queryset.filter(status='answered')
     
-    # Apply date filter
     if date_filter == 'today':
         today = timezone.now().date()
         userfaq_queryset = userfaq_queryset.filter(datetime__date=today)
@@ -984,16 +964,13 @@ def faq_request(request):
         month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         userfaq_queryset = userfaq_queryset.filter(datetime__gte=month_start)
     
-    # Apply search filter
     if search_query:
         userfaq_queryset = userfaq_queryset.filter(
             Q(question__icontains=search_query) | Q(email_id__icontains=search_query)
         )
     
-    # Order by datetime (newest first)
     userfaq_queryset = userfaq_queryset.order_by('-datetime')
     
-    # PAGINATION
     paginator = Paginator(userfaq_queryset, 12)  # items per page
     page_number = request.GET.get('page', 1)
 
@@ -1004,7 +981,6 @@ def faq_request(request):
     except EmptyPage:
         userfaq_obj = paginator.page(paginator.num_pages)
     
-    # Calculate statistics
     total_requests = UserFAQ.objects.count()
     unanswered_requests = UserFAQ.objects.filter(status='unanswered').count()
     answered_requests = UserFAQ.objects.filter(status='answered').count()
@@ -1015,10 +991,9 @@ def faq_request(request):
         'unanswered_requests': unanswered_requests,
         'answered_requests': answered_requests,
     }
-    
     return render(request, 'dashboard/faq-request.html', context)
 
-
+@login_required(login_url='login')
 def faq(request):
     faq_obj = AdminFAQ.objects.all().order_by('-id')
     total_faq = faq_obj.count()
@@ -1033,23 +1008,19 @@ def faq(request):
     }
     return render(request, 'dashboard/faq.html', context)
 
-
+@login_required(login_url='login')
 def queries(request):
-    #Base Queryset
     queries_obj = ContactUs.objects.all()
     
-    # Get filter parameters
     status_filter = request.GET.get('status', '')
     date_filter = request.GET.get('date', '')
     search_query = request.GET.get('search', '')
     
-    # Apply status filter
     if status_filter == 'pending_queries':
         queries_obj = queries_obj.filter(status='pending')
     elif status_filter == 'resolved_queries':
         queries_obj = queries_obj.filter(status='resolved')
         
-    # date filter CURRENTLY NOT POSSIBLE because datetime field is not in ContactUs model
     
     # if date_filter == 'today':
     #     today = timezone.now().date()
@@ -1061,7 +1032,6 @@ def queries(request):
     #     month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     #     queries_obj = queries_obj.filter(datetime__gte=month_start)
     
-    # Apply search filter
     if search_query:
         queries_obj = queries_obj.filter(
             Q(subject__icontains=search_query) | 
@@ -1070,10 +1040,7 @@ def queries(request):
             Q(name__icontains=search_query)
          ) 
         
-    # Order by id (newest first)
     queries_obj = queries_obj.order_by('-id')
-    
-    # PAGINATION
     
     paginator = Paginator(queries_obj, 12)  # items per page
     page_number = request.GET.get('page', 1)
@@ -1085,7 +1052,6 @@ def queries(request):
     except EmptyPage:
         queries_obj = paginator.page(paginator.num_pages)
     
-    #Calculate statistics
     total_queries = ContactUs.objects.count()
     pending_queries = ContactUs.objects.filter(status='pending').count()
     resolved_queries = ContactUs.objects.filter(status='resolved').count()
@@ -1105,10 +1071,8 @@ def send_query_response(request):
         query_id = request.POST.get('query_id')
         response_text = request.POST.get('response_text')
         
-        # Get the query
         query = get_object_or_404(ContactUs, id=query_id)
         
-        # Send email to user
         subject = f"Re: {query.subject}"
         message = f"""
 Dear {query.name},
@@ -1153,25 +1117,17 @@ def mark_query_resolved(request, query_id):
     messages.success(request, 'Query marked as resolved')
     return redirect('queries')
 
-import csv  # Add this at the top if not present
+import csv  
 
 def export_queries_csv(request):
-    """Export all contact queries to CSV file"""
-    
-    # Create the CSV response
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="contact_queries.csv"'
-    
-    # Create CSV writer
     writer = csv.writer(response)
     
-    # Write the header row
     writer.writerow(['ID', 'Name', 'Email', 'Phone', 'Subject', 'Message', 'Status', 'Date'])
     
-    # Get all ContactUs objects from database
     queries = ContactUs.objects.all().order_by('-id')
     
-    # Write each query as a row
     for query in queries:
         writer.writerow([
             query.id,
@@ -1184,13 +1140,13 @@ def export_queries_csv(request):
             'N/A'  # Date field not available in ContactUs model
         ])
     
-    # Return the CSV file
     return response
 
-
+@login_required(login_url='login')
 def ref(request):
     return render(request, 'dashboard/ref.html')
 
+@login_required(login_url='login')
 def services(request):
     Service_obj = Service.objects.all().order_by('-id')
     total_services = Service_obj.count()
@@ -1209,8 +1165,7 @@ def services(request):
     }
     return render(request, 'dashboard/services.html', context)
 
-
-
+@login_required(login_url='login')
 def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     service_details = ServiceDetail.objects.filter(service=service)
@@ -1223,26 +1178,19 @@ def service_detail(request, service_id):
         
     return render(request, 'dashboard/detail-service.html', context)
 
+@login_required(login_url='login')
 def team(request):
-    """Display team members with filtering and pagination (12 per page)"""
-    
-    # Start with all team members
     team_list = Team.objects.all()
-    
-    # Get filter parameters from URL query string
     role_filter = request.GET.get('role', '').strip()
     status_filter = request.GET.get('status', '').strip()
     sort_by = request.GET.get('sort', '-id')
     
-    # Apply role filter if provided
     if role_filter:
         team_list = team_list.filter(role=role_filter)
     
-    # Apply status filter if provided
     if status_filter:
         team_list = team_list.filter(status=status_filter)
     
-    # Apply sorting with validation (prevent SQL injection)
     allowed_sort_fields = [
         'name', '-name',
         'role', '-role',
@@ -1255,10 +1203,8 @@ def team(request):
     else:
         team_list = team_list.order_by('-id')  # Default: newest first
     
-    # Extract unique roles for dropdown
     roles = Team.objects.values_list('role', flat=True).distinct().order_by('role')
     
-    # Create paginator 
     paginator = Paginator(team_list, 2)
     page_number = request.GET.get('page', 1)
     try:
@@ -1274,7 +1220,7 @@ def team(request):
     }
     return render(request, 'dashboard/team.html', context)
    
-
+@login_required(login_url='login')
 def team_detail(request, team_id):
     team_member = get_object_or_404(Team, id=team_id)
     education = team_member.education.all()
@@ -1289,10 +1235,7 @@ def team_detail(request, team_id):
     }
     return render(request, 'dashboard/detail-team.html', context)
 
-
-
-
-
+@login_required(login_url='login')
 def testimonial(request):
     testimonial_obj = Testimonial.objects.all().order_by('-id')  
     
@@ -1313,6 +1256,7 @@ def testimonial(request):
 
 from django.core.paginator import Paginator
 
+@login_required(login_url='login')
 def newsletter(request):
     newsletter_obj = NewsletterSubscriber.objects.all().order_by('-subscribed_at')
     total_count = newsletter_obj.count()
@@ -1336,8 +1280,7 @@ def newsletter(request):
     return render(request, 'dashboard/newsletter.html', context)
 
 
-import csv
-
+@login_required(login_url='login')
 def add_subscriber(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -1350,6 +1293,7 @@ def add_subscriber(request):
     
     return redirect('newsletter')
 
+@login_required(login_url='login')
 def toggle_subscriber(request, subscriber_id):
     if request.method == 'POST':
         subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
@@ -1376,10 +1320,9 @@ def toggle_subscriber(request, subscriber_id):
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
+@login_required(login_url='login')
 def delete_subscriber(request, subscriber_id):
-    """
-    Delete a subscriber permanently
-    """
+
     if request.method == 'POST':
         subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
         email = subscriber.email
@@ -1419,6 +1362,7 @@ def export_subscribers(request):
         ]) 
     return response
 
+@login_required(login_url='login')
 def create_campaign(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
@@ -1496,25 +1440,19 @@ def send_campaign(request, campaign_id):
 
 
 def delete_campaign(request, campaign_id):
-    """Delete a campaign"""
     campaign = get_object_or_404(Campaign, id=campaign_id)
     campaign.delete()
     messages.success(request, 'Campaign deleted successfully!')
-    return redirect('newsletter_dashboard')
+    return redirect('newsletter')
 
-
-
-# //email faq:
 
 def send_faq_response(request):
     if request.method == 'POST':
         faq_id = request.POST.get('faq_id')
         response_text = request.POST.get('response_text')
         
-        # Get the FAQ object
         faq = get_object_or_404(UserFAQ, id=faq_id)
         
-        # Update the FAQ with answer and status
         faq.answer = response_text
         faq.status = 'answered'
         faq.save()
@@ -1551,12 +1489,9 @@ def send_faq_response(request):
 
 
 def add_to_faq(request, userfaq_id):
-    """Convert a UserFAQ entry to AdminFAQ"""
     if request.method == 'POST':
-        # Get the UserFAQ object
         userfaq = get_object_or_404(UserFAQ, id=userfaq_id)
 
-        # Check if this UserFAQ has already been added to AdminFAQ
         existing_faq = AdminFAQ.objects.filter(
             question=userfaq.question,
             email_id=userfaq.email_id
@@ -1566,7 +1501,6 @@ def add_to_faq(request, userfaq_id):
             messages.warning(request, 'This question has already been added to the FAQ list.')
             return redirect('faq_request')
 
-        # Create new AdminFAQ from UserFAQ
         admin_faq = AdminFAQ(
             question=userfaq.question,
             answer=userfaq.answer if userfaq.answer else '',
@@ -1574,42 +1508,58 @@ def add_to_faq(request, userfaq_id):
             status=userfaq.status,
             order=0  # Default order
         )
-
         admin_faq.save()
 
         messages.success(request, 'FAQ added to public FAQ list successfully!')
         return redirect('faq_request')
-
     return redirect('faq_request')
 
 
 
-def export_faq_csv(request):
-    """Export all FAQ requests to CSV file"""
-    
-    # Create the CSV response
+def export_faq_csv(request):   
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="faq_requests.csv"'
     
-    # Create CSV writer
     writer = csv.writer(response)
     
-    # Write the header row
     writer.writerow(['ID', 'Question', 'Email', 'Answer', 'Status', 'Date Submitted'])
     
-    # Get all UserFAQ objects from database
     faq_requests = UserFAQ.objects.all().order_by('-datetime')
     
-    # Write each FAQ request as a row
     for faq in faq_requests:
         writer.writerow([
             faq.id,
             faq.question,
             faq.email_id,
-            faq.answer if faq.answer else '',  # Show empty if no answer
+            faq.answer if faq.answer else '',  
             faq.status,
-            faq.datetime.strftime('%d-%m-%Y %H:%M')  # Format: 15-01-2024 14:30
+            faq.datetime.strftime('%d-%m-%Y %H:%M')  
         ])
-    
-    # Return the CSV file
+  
     return response
+
+
+def custom_logout(request):
+    logout(request)
+    return redirect('login') 
+
+def approve_user_faq(request, id):
+    user_faq = get_object_or_404(UserFAQ, id=id)
+
+    if request.method == 'POST':
+        AdminFAQ.objects.create(
+            question=request.POST.get('question'),
+            answer=request.POST.get('answer'),
+            email_id=request.POST.get('email_id'),
+            order=request.POST.get('order', 0)
+        )
+        user_faq.status = "answered"
+        user_faq.answer = request.POST.get("answer")
+        user_faq.save()
+
+        return redirect('faq')
+
+    return render(request, "dashboard/add-faq.html", {
+        "mode": "user_convert",   # <--- tells template this comes from UserFAQ
+        "faq": user_faq,
+    })

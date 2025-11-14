@@ -841,6 +841,45 @@ h1.section-main-title2 {
 /*=====================================
 <-- 05.start solutek contact Area Css -->
 =======================================*/
+.brochure-button {
+    background: #f0f0f0;  /* Light gray background */
+    color: #00579A;       /* Your brand blue */
+    padding: 14px 25px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: "Fira Sans";
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s;
+    border: 1px solid #ddd;
+}
+
+.brochure-button i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.brochure-button:hover {
+    background: #00579A;
+    color: white;
+    border-color: #00579A;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .form-action-buttons {
+        flex-direction: column;
+        padding-top: 10px;
+    }
+    .brochure-button {
+        justify-content: center;
+        margin-top: 10px;
+        
+    }
+    
+}
 
 .contact-area {
   background: url(assets/images/contact-bg2.png);
@@ -2060,7 +2099,7 @@ h3.testi-title span {
   display: inline-block;
   font-size: 15px;
   line-height: 28px;
-  color: #00579A;
+  color: #52b4ff;
   font-weight: 400;
   font-family: "Fira Sans";
   margin-left: 14px;
@@ -4651,6 +4690,7 @@ ul.list-style-one li a:hover {
   width: 100%;
 }
 
+
 /*---=====================================================
   <!-- start solutek about section -->
 =========================================================---*/
@@ -4680,7 +4720,8 @@ ul.list-style-one li a:hover {
   list-style: none;
   margin-left: 54px;
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 5px;  /* change here for reduce space b/w list */
+  
 }
 
 .about-section .about-item-list ul li::before {

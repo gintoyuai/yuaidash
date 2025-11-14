@@ -10,10 +10,7 @@
             <div class="menu-toggle" id="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search FAQs..." id="global-search">
-            </div>
+            
         </div>
 
         <div class="header-right">
@@ -73,7 +70,6 @@
                 <div class="faq-question">
                     <div>
                         <h3>{{ faq.question }}</h3>
-                        <span class="faq-category">{{ faq.category|default:"General" }}</span>
                         <span class="faq-status status-{{ faq.status }}">{{ faq.status|title }}</span>
                     </div>
                     <div class="faq-toggle"><i class="fas fa-chevron-down"></i></div>

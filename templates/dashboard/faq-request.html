@@ -9,10 +9,7 @@
             <div class="menu-toggle" id="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search FAQ requests...">
-            </div>
+          
         </div>
 
         <div class="header-right">
@@ -158,7 +155,7 @@
                     </a>
                     {% endif %}
 
-                    <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
+                    <a href="{% url 'approve_user_faq'  userfaq.id %}" class="faq-request-action-btn">
                         <i class="fas fa-check"></i> Add to FAQ
                     </a>
 
@@ -192,7 +189,7 @@
                         </a>
                         {% endif %}
 
-                        <a href="{% url 'add_faq' %}" class="faq-request-action-btn">
+                        <a href="{% url 'approve_user_faq'  userfaq.id %}" class="faq-request-action-btn">
                             <i class="fas fa-check"></i> Add to FAQ
                         </a>
                         <a href="#" class="faq-request-action-btn btn-view" onclick="closeRequestModal()">

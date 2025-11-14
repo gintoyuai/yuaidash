@@ -137,10 +137,7 @@
             <div class="menu-toggle" id="menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
-            </div>
+            
         </div>
 
         <div class="header-right">
@@ -212,14 +209,6 @@
                     <!-- Settings Section -->
                     <div class="form-section">
                         <h3 class="form-section-title">Settings</h3>
-
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select id="status" name="status" class="form-control">
-                                <option value="unanswered" {% if faq.status == 'unanswered' %}selected{% endif %}>Unanswered</option>
-                                <option value="answered" {% if faq.status == 'answered' %}selected{% endif %}>Answered</option>
-                            </select>
-                        </div>
 
                         <div class="form-group">
                             <label for="order">Display Order</label>

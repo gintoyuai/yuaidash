@@ -5,6 +5,7 @@ urlpatterns = [
     # Add pages
     
     path('yuaidash-login/', views.login_view, name='login'),
+    path('logout/', views.custom_logout, name='logout'),
     path('yuaidash/', views.yuaidash, name='yuaidash'),
     
     path('add-blog/', views.add_blog, name='add_blog'),
@@ -48,6 +49,7 @@ urlpatterns = [
     path('send-faq-response/', views.send_faq_response, name='send_faq_response'),
     path('add-to-faq/<int:userfaq_id>/', views.add_to_faq, name='add_to_faq'),
     path('faq-request/export-csv/', views.export_faq_csv, name='export_faq_csvs'),
+    path("faq/approve/<int:id>/", views.approve_user_faq, name="approve_user_faq"),
     
         
     path('faq/', views.faq, name='faq'),

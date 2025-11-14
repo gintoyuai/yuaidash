@@ -64,8 +64,8 @@ class ContactUsAdmin(admin.ModelAdmin):
 admin.site.register(ContactUs, ContactUsAdmin)
 
 class AdminFAQAdmin(admin.ModelAdmin):
-    list_display = ['question', 'answer', 'email_id', 'datetime', 'order', 'status']
-    list_editable = ['answer', 'email_id', 'order', 'status']  
+    list_display = ['question', 'answer', 'email_id', 'datetime', 'order']
+    list_editable = ['answer', 'email_id', 'order']  
     list_display_links = ['question']  
 admin.site.register(AdminFAQ, AdminFAQAdmin)
 

@@ -92,31 +92,25 @@ class ContactUs(models.Model):
         ('pending', 'Pending'),
         ('resolved', 'Resolved'),
     ]
-
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     email = models.EmailField()
     subject = models.CharField(max_length=255)
     message = models.TextField()
     phone = models.CharField(max_length=20, blank=True, null=True)
+    date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
         return f"{self.subject} - {self.name}"
 
 class AdminFAQ(models.Model):
-    STATUS_CHOICES = [
-        ('unanswered', 'Unanswered'),
-        ('answered', 'Answered'),
-    ]
-
     id = models.AutoField(primary_key=True)
     question = models.TextField()
     answer = models.TextField(blank=True, null=True)  
     email_id = models.EmailField()
     datetime = models.DateTimeField(auto_now_add=True)
     order = models.IntegerField(default=0)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unanswered')
 
     def __str__(self):
         return f"Q: {self.question[:50]}..."  

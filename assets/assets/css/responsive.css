@@ -4051,10 +4051,9 @@ h3.blog-title-two a {
     padding: 35px 10px 135px 10px;
 }
 
-.our-service-section .service-thumb {
-    position: absolute;
-    bottom: -20px;
-    left: 13px;
+/* for not showing service image for mobile  */
+.our-service-section .service-thumb {        
+    display: none;
 }
 
 /* about-section */
@@ -4240,7 +4239,7 @@ h3.blog-title-two a {
 }
 
 .breadcumb-content h4 {
-    font-size: 38px;
+    font-size: 28px;
 }
 
 .team-details-area .team-member-title h4 {
