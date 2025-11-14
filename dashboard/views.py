@@ -238,13 +238,11 @@ def login_view(request):
         
         if user is not None:
             login(request, user)
-            messages.success(request, f'Welcome back, {user.username}!')
-            
+            messages.success(request, f'Welcome back, {user.username}!')            
             next_url = request.GET.get('next', 'yuaidash')  
             return redirect(next_url)
         else:
-            messages.error(request, 'Invalid username or password.')
-    
+            messages.error(request, 'Invalid username or password.')    
     return render(request, 'dashboard/logindash.html')
 
 @login_required(login_url='login')
@@ -924,17 +922,24 @@ def blog_detail(request, blog_id):
     except Blog.DoesNotExist:
         raise Http404("Blog post not found")
   
-@csrf_exempt
+from django.views.decorators.csrf import csrf_protect 
+
+@csrf_protect
 def toggle_save_comment(request, comment_id):
     if request.method == 'POST':
-        comment = get_object_or_404(BlogComment, id=comment_id)
-        comment.save_comments = not comment.save_comments
-        comment.save()
-        return JsonResponse({
-            'status': 'success',
-            'save_comments': comment.save_comments
-        })
-    return JsonResponse({'status': 'error'}, status=400)
+        try:
+            comment = get_object_or_404(BlogComment, id=comment_id)
+            # Toggle the save_comments field
+            comment.save_comments = not comment.save_comments
+            comment.save()
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+    
+    return redirect('blog_detail', blog_id=comment.blog.id)
 
 @login_required(login_url='login')
 def faq_request(request):

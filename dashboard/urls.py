@@ -43,7 +43,6 @@ urlpatterns = [
     # Main pages
     path('blog/', views.blog, name='blog'),
     path('toggle-save-comment/<int:comment_id>/', views.toggle_save_comment, name='toggle_save_comment'),
-
     
     path('faq-request/', views.faq_request, name='faq_request'),
     path('send-faq-response/', views.send_faq_response, name='send_faq_response'),
