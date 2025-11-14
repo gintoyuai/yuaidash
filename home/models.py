@@ -224,4 +224,33 @@ class NewsletterSubscriber(models.Model):
     status = models.CharField(max_length=10, choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active')
 
     def __str__(self):
-        return self.email
+        return self.email    
+    
+class Campaign(models.Model):
+    CAMPAIGN_STATUS = [
+        ('draft', 'Draft'),
+        ('scheduled', 'Scheduled'),
+        ('sent', 'Sent'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    name = models.CharField(max_length=200, help_text="Campaign name")
+    subject = models.CharField(max_length=200, help_text="Email subject")
+    content = models.TextField(help_text="Email content (HTML)")
+    
+    status = models.CharField(max_length=20, choices=CAMPAIGN_STATUS, default='draft')
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'campaigns'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.name} ({self.status})"
+    
+
+    

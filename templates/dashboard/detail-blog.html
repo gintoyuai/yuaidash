@@ -10,7 +10,7 @@
                 <i class="fas fa-bars"></i>
             </div>
             <div class="breadcrumb">
-                <a href="{% url 'blog' %}">Blogs</a> 
+                <a href="{% url 'blog' %}">Blogs</a>
                 <i class="fas fa-chevron-right" style="font-size: 10px; margin: 0 10px;"></i>
                 <span>{{ blog.subject }}</span>
             </div>
@@ -38,14 +38,6 @@
             <div class="blog-detail-header">
                 <div class="blog-detail-breadcrumb">
                     <a href="{% url 'blog' %}"><i class="fas fa-arrow-left"></i> Back to Blogs</a>
-                </div>
-                <div class="blog-detail-actions">
-                    <a href="{% url 'edit_blog' blog.id %}" class="btn-primary">
-                        <i class="fas fa-edit"></i> Edit Blog
-                    </a>
-                    <a href="{% url 'delete_blog' blog.id %}" class="btn-danger">
-                        <i class="fas fa-trash"></i> Delete
-                    </a>
                 </div>
             </div>
 
@@ -126,7 +118,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="comment-date">
-                                    <i class="far fa-clock"></i> 
+                                    <i class="far fa-clock"></i>
                                     {% if comment.id %}Comment #{{ comment.id }}{% endif %}
                                 </div>
                             </div>
@@ -135,9 +127,14 @@
                             </div>
                             <div class="comment-footer">
                                 <span class="comment-email">{{ comment.email }}</span>
-                                {% if comment.save_comments %}
-                                <span class="saved-badge"><i class="fas fa-bookmark"></i> Saved</span>
-                                {% endif %}
+                                <button class="save-comment-btn {% if comment.save_comments %}saved{% endif %}"
+                                    data-id="{{ comment.id }}" data-saved="{{ comment.save_comments }}">
+                                    {% if comment.save_comments %}
+                                    <i class="fas fa-bookmark"></i> Saved
+                                    {% else %}
+                                    <i class="far fa-bookmark"></i> Save
+                                    {% endif %}
+                                </button>
                             </div>
                         </div>
                         {% empty %}
@@ -156,10 +153,6 @@
                 <div class="sidebar-widget">
                     <h4>Blog Statistics</h4>
                     <div class="stats-info">
-                        <div class="stat-item">
-                            <i class="far fa-eye"></i>
-                            <span>Views: 1,234</span>
-                        </div>
                         <div class="stat-item">
                             <i class="far fa-comments"></i>
                             <span>Comments: {{ blog.blog_comments.count }}</span>
@@ -194,9 +187,11 @@
                         <a href="{% url 'edit_blog' blog.id %}" class="action-btn">
                             <i class="fas fa-edit"></i> Edit Blog
                         </a>
-                        <a href="{% url 'delete_blog' blog.id %}" class="action-btn">
+
+                        <a href="#" class="action-btn" onclick="openModal({{ blog.id }}, '{{ blog.subject|escapejs }}')">
                             <i class="fas fa-trash"></i> Delete Blog
                         </a>
+
                         <a href="#" class="action-btn">
                             <i class="fas fa-share"></i> Share Blog
                         </a>
@@ -205,6 +200,22 @@
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Confirm Delete</h3>
+            <p id="modal-message">Are you sure you want to delete this blog?</p>
+            <div class="actions">
+                <form id="deleteForm" method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="delete">Delete</button>
+                </form>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -239,28 +250,6 @@
 
     .blog-detail-breadcrumb a:hover {
         color: #333;
-    }
-
-    .blog-detail-actions {
-        display: flex;
-        gap: 10px;
-    }
-
-    .btn-danger {
-        background: #dc3545;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background 0.3s;
-    }
-
-    .btn-danger:hover {
-        background: #c82333;
-        color: white;
     }
 
     .blog-detail-image {
@@ -429,9 +418,25 @@
         color: #666;
     }
 
-    .saved-badge {
+    .save-comment-btn {
+        border: none;
+        background: none;
+        color: #007bff;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: color 0.3s;
+    }
+
+    .save-comment-btn:hover {
+        color: #0056b3;
+    }
+
+    .save-comment-btn.saved {
         color: #28a745;
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .no-comments {
@@ -446,12 +451,11 @@
         color: #ccc;
     }
 
-    /* Sidebar Styles */
     .sidebar-widget {
         background: white;
         padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
     }
 
@@ -526,26 +530,186 @@
         background: #e9ecef;
     }
 
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 480px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .close:hover {
+        color: #333;
+    }
+
+    .modal-content h3 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .modal-content p {
+        margin-bottom: 20px;
+        color: #555;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .actions button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .actions .delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .actions .delete:hover {
+        background: #c82333;
+    }
+
+    .actions .cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .actions .cancel:hover {
+        background: #545b62;
+    }
+
     /* Responsive Design */
     @media (max-width: 992px) {
         .blog-detail-container {
             grid-template-columns: 1fr;
         }
-        
+
         .blog-detail-header {
             flex-direction: column;
             gap: 15px;
             align-items: flex-start;
         }
-        
+
         .blog-detail-meta {
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .blog-detail-title {
             font-size: 2rem;
         }
     }
 </style>
+
+<script>
+    // Save comment functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.save-comment-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const commentId = this.dataset.id;
+                const csrftoken = '{{ csrf_token }}';
+
+                fetch(`/toggle-save-comment/${commentId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            this.dataset.saved = data.save_comments;
+                            if (data.save_comments) {
+                                this.innerHTML = '<i class="fas fa-bookmark"></i> Saved';
+                                this.classList.add('saved');
+                            } else {
+                                this.innerHTML = '<i class="far fa-bookmark"></i> Save';
+                                this.classList.remove('saved');
+                            }
+                        } else {
+                            alert('Something went wrong. Please try again.');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+
+    // Modal functionality
+    function openModal(blogId, blogTitle) {
+        const modal = document.getElementById('deleteModal');
+        const message = document.getElementById('modal-message');
+        const form = document.getElementById('deleteForm');
+        
+        // Update modal message and form action
+        message.innerHTML = `Are you sure you want to delete <strong>"${blogTitle}"</strong>? This action cannot be undone.`;
+        form.action = `{% url 'delete_blog' 0 %}`.replace('0', blogId);
+        
+        // Show modal
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'none';
+    }
+
+    // Close modal when clicking outside or pressing Escape
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
 {% endblock %}

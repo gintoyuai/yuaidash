@@ -11,17 +11,23 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, Http404, HttpResponse
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from django.db import transaction
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Avg, Count
+
+from django.conf import settings
+from .models import *
+from home.models import *
 
 # Add pages
 def add_blog(request):
-    if request.method == 'POST':
-      
+    if request.method == 'POST':      
         name = request.POST.get('name')
         subject = request.POST.get('subject')
         description = request.POST.get('description')
@@ -55,6 +61,7 @@ def add_blog(request):
 
 def edit_blog(request, pk):
     blog = get_object_or_404(Blog, pk=pk)
+    existing_images = blog.blog_images.all()
     
     if request.method == 'POST':
         # Update blog fields
@@ -76,28 +83,87 @@ def edit_blog(request, pk):
             files = request.FILES.getlist('blog_images')
             for file in files:
                 BlogImage.objects.create(blog=blog, image=file)
+
+        #  Handle image deletions
+        images_to_delete = request.POST.getlist('delete_images')
+        if images_to_delete:
+            for img_id in images_to_delete:
+                try:
+                    img = BlogImage.objects.get(id=img_id, blog=blog)
+                    img.image.delete(save=False)  # remove file from storage
+                    img.delete()  # remove from DB
+                except BlogImage.DoesNotExist:
+                    pass
+
         
         messages.success(request, 'Blog updated successfully!')
         return redirect('blog')
     
-    return render(request, 'dashboard/edit-blog.html', {'blog': blog})
+    return render(request, 'dashboard/edit-blog.html', {'blog': blog ,'existing_images': existing_images})
 
 
 
 def delete_blog(request, pk):
     blog = get_object_or_404(Blog, pk=pk)
-    
-    if request.method == 'POST':
-        blog.delete()
-        messages.success(request, 'Blog deleted successfully!')
-        return redirect('blog')
-    
-    return render(request, 'confirm_delete.html', {'blog': blog})
-
+    blog.delete()
+    messages.success(request, 'Blog deleted successfully!')
+    return redirect('blog')   
 
 
 
 def add_faq(request):
+    if request.method == "POST":
+        question = request.POST.get('question')
+        answer = request.POST.get('answer', '')
+        email_id = request.POST.get('email_id')
+        order = request.POST.get('order', 0)
+        status = request.POST.get('status', 'unanswered')
+
+        # Validate required fields
+        if not all([question, email_id]):
+            messages.error(request, "Question and Email are required fields.")
+            return redirect('add_faq')
+
+        # Validate email
+        try:
+            validate_email(email_id)
+        except ValidationError:
+            messages.error(request, "Please enter a valid email address.")
+            return redirect('add_faq')
+
+        # Validate order
+        try:
+            order = int(order)
+        except (ValueError, TypeError):
+            order = 0
+
+        # Normalize status
+        if status not in ['unanswered', 'answered']:
+            status = 'unanswered'
+
+        if answer and status == 'unanswered':
+            status = 'answered'
+        elif not answer and status == 'answered':
+            status = 'unanswered'
+        try:
+            AdminFAQ.objects.create(
+                question=question,
+                answer=answer,
+                email_id=email_id,
+                order=order,
+                status=status
+            )
+            messages.success(request, "FAQ added successfully!")
+            return redirect('faq')
+        except Exception as e:
+            messages.error(request, f"Error saving FAQ: {e}")
+            return redirect('add_faq')
+
+    return render(request, 'dashboard/add-faq.html')
+
+def edit_faq(request, faq_id):
+    faq = get_object_or_404(AdminFAQ, id=faq_id)
+
     if request.method == "POST":
         try:
             question = request.POST.get('question')
@@ -108,44 +174,39 @@ def add_faq(request):
 
             if not all([question, email_id]):
                 messages.error(request, "Question and Email are required fields.")
-                return redirect('add_faq')
+                return redirect('edit_faq', faq_id=faq_id)
 
             try:
                 validate_email(email_id)
             except ValidationError:
                 messages.error(request, "Please enter a valid email address.")
-                return redirect('add_faq')
+                return redirect('edit_faq', faq_id=faq_id)
 
-            try:
-                order = int(order)
-            except (ValueError, TypeError):
-                order = 0
-
-            if status not in ['unanswered', 'answered']:
-                status = 'unanswered'
-
-            if answer and status == 'unanswered':
-                status = 'answered'
-            elif not answer and status == 'answered':
-                status = 'unanswered'
-
-            faq = AdminFAQ(
-                question=question,
-                answer=answer,
-                email_id=email_id,
-                order=order,
-                status=status
-            )
-
+            faq.question = question
+            faq.answer = answer
+            faq.email_id = email_id
+            faq.order = int(order) if order else 0
+            faq.status = status if status in ['unanswered', 'answered'] else 'unanswered'
             faq.save()
 
-            messages.success(request, "FAQ added successfully!")
-            return redirect('faq_list')  
+            messages.success(request, "FAQ updated successfully!")
+            return redirect('faq')
 
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
-            return redirect('add_faq')
-    return render(request, 'dashboard/add-faq.html')
+            return redirect('edit_faq', faq_id=faq_id)
+
+    context = {'faq': faq}
+    return render(request, 'dashboard/edit-faq.html', context)
+
+
+def delete_faq(request, faq_id):
+    faq = get_object_or_404(AdminFAQ, id=faq_id)
+    faq.delete()
+    messages.success(request, "FAQ deleted successfully!")
+    return redirect('faq')
+
+
 
 def add_services(request):
     if request.method == 'POST':
@@ -287,8 +348,8 @@ def add_service_details(request, service_id):
     })
 
 
-def edit_service_details(request, service_id):
-    service_detail = get_object_or_404(ServiceDetail, pk=service_id)
+def edit_service_detail(request, detail_id):
+    service_detail = get_object_or_404(ServiceDetail, pk=detail_id)
     service = service_detail.service
 
     if request.method == 'POST':
@@ -297,41 +358,34 @@ def edit_service_details(request, service_id):
                 title = request.POST.get('detail_title')
                 status = request.POST.get('detail_status')
                 description = request.POST.get('detail_description')
-                
-                should_delete = request.POST.get('delete_detail') == '1'
-                
-                if should_delete:
-                    service_detail.delete()
-                    messages.success(request, 'Service detail deleted successfully!')
-                    return redirect('edit_service', pk=service.id)
-                else:
-                    service_detail.title = title if title else service_detail.title
-                    service_detail.description = description if description else service_detail.description
-                    service_detail.status = status if status else service_detail.status
 
-                    if 'detail_image' in request.FILES and request.FILES['detail_image']:
-                        if service_detail.image:
-                            service_detail.image.delete(save=False)
-                        service_detail.image = request.FILES['detail_image']
+                # Update fields
+                service_detail.title = title or service_detail.title
+                service_detail.description = description or service_detail.description
+                service_detail.status = status or service_detail.status
 
-                    if request.POST.get('remove_detail_image') == '1':
-                        if service_detail.image:
-                            service_detail.image.delete(save=False)
-                            service_detail.image = None
+                if 'detail_image' in request.FILES:
+                    if service_detail.image:
+                        service_detail.image.delete(save=False)
+                    service_detail.image = request.FILES['detail_image']
 
-                    service_detail.save()
-                    messages.success(request, 'Service detail updated successfully!')
-                    
-                    return redirect('edit_service_details', service_id=service_detail.id)
+                if request.POST.get('remove_detail_image') == '1':
+                    if service_detail.image:
+                        service_detail.image.delete(save=False)
+                        service_detail.image = None
+
+                service_detail.save()
+                messages.success(request, 'Service detail updated successfully!')
+                return redirect('service_detail', service_id=service.id)
 
         except Exception as e:
             messages.error(request, f'Error updating detail: {str(e)}')
-            return redirect('edit_service_details', service_id=service_detail.id)
+            return redirect('edit_service_detail', detail_id=detail_id)
+
     return render(request, 'dashboard/edit-service-details.html', {
         'service': service,
-        'service_detail': service_detail  # Single detail object
+        'service_detail': service_detail
     })
-
 
 def delete_service(request, pk):
     service = get_object_or_404(Service, pk=pk)
@@ -343,25 +397,24 @@ def delete_service(request, pk):
         messages.error(request, f"Failed to delete service: {e}")
         return redirect('edit_service', pk=pk)
 
-@require_POST
+
+@login_required
 def delete_service_detail(request, pk):
     detail = get_object_or_404(ServiceDetail, pk=pk)
     service_pk = detail.service_id
 
-    try:
-      
-        if getattr(detail, 'image', None):
-            try:
+    if request.method == 'POST':
+        try:
+            if detail.image:
                 detail.image.delete(save=False)
-            except Exception:
-                pass
+            detail.delete()
+            messages.success(request, "Detail deleted successfully.")
+        except Exception as e:
+            messages.error(request, f"Failed to delete detail: {e}")
+        return redirect('service_detail', service_id=service_pk)
 
-        detail.delete()
-        messages.success(request, "Detail deleted.")
-        return redirect('edit_service', pk=service_pk)
-    except Exception as e:
-        messages.error(request, f"Failed to delete detail: {e}")
-        return redirect('edit_service', pk=service_pk)
+    messages.error(request, "Invalid request method.")
+    return redirect('service_detail', service_id=service_pk)
 
 
 def add_team(request):
@@ -853,10 +906,29 @@ def yuaidash(request):
     }
     return render(request, 'dashboard/yuaidash.html', context)
 
+
 def blog(request):
-    blog_obj = Blog.objects.all()
-    context = {'blog_obj': blog_obj}
+    blog_obj = Blog.objects.all().annotate(comment_count=Count('blog_comments')).order_by('-date', '-time')
+
+    total_blogs = blog_obj.count()
+    featured_count = blog_obj.filter(featured=True).count()
+    non_featured_count = total_blogs - featured_count
+    total_comments = BlogComment.objects.count()
+
+    paginator = Paginator(blog_obj, 6)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'total_blogs': total_blogs,
+        'featured_count': featured_count,
+        'non_featured_count': non_featured_count,
+        'total_comments': total_comments,
+    }
+
     return render(request, 'dashboard/blog.html', context)
+
 
 def blog_detail(request, blog_id):
   
@@ -871,6 +943,18 @@ def blog_detail(request, blog_id):
         
     except Blog.DoesNotExist:
         raise Http404("Blog post not found")
+    
+@csrf_exempt
+def toggle_save_comment(request, comment_id):
+    if request.method == 'POST':
+        comment = get_object_or_404(BlogComment, id=comment_id)
+        comment.save_comments = not comment.save_comments
+        comment.save()
+        return JsonResponse({
+            'status': 'success',
+            'save_comments': comment.save_comments
+        })
+    return JsonResponse({'status': 'error'}, status=400)
 
 
 
@@ -936,9 +1020,19 @@ def faq_request(request):
 
 
 def faq(request):
-    faq_obj = AdminFAQ.objects.all()
-    context = {'faq_obj': faq_obj}  
+    faq_obj = AdminFAQ.objects.all().order_by('-id')
+    total_faq = faq_obj.count()
+    
+    paginator = Paginator(faq_obj, 3)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,   
+        'total_faq': total_faq, 
+    }
     return render(request, 'dashboard/faq.html', context)
+
 
 def queries(request):
     #Base Queryset
@@ -1098,17 +1192,29 @@ def ref(request):
     return render(request, 'dashboard/ref.html')
 
 def services(request):
-    Service_obj = Service.objects.all()
-    context = {'Service_obj': Service_obj
-          }
-    return render(request, 'dashboard/services.html' , context)
+    Service_obj = Service.objects.all().order_by('-id')
+    total_services = Service_obj.count()
+    total_active = Service_obj.filter(status='Active').count()
+    total_inactive = Service_obj.filter(status='Inactive').count()
+
+    paginator = Paginator(Service_obj, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,               
+        'total_services': total_services,   
+        'total_active': total_active,       
+        'total_inactive': total_inactive,   
+    }
+    return render(request, 'dashboard/services.html', context)
+
+
 
 def service_detail(request, service_id):
-
     service = get_object_or_404(Service, id=service_id)
-    service_details = ServiceDetail.objects.filter(service=service, status='active')
-    related_services = Service.objects.filter(status='Active').exclude(id=service_id)[:4]
-    
+    service_details = ServiceDetail.objects.filter(service=service)
+    related_services = Service.objects.filter(status='Active').exclude(id=service_id)[:4]   
     context = {
         'service': service,
         'service_details': service_details,
@@ -1183,15 +1289,52 @@ def team_detail(request, team_id):
     }
     return render(request, 'dashboard/detail-team.html', context)
 
+
+
+
+
 def testimonial(request):
-    testimonial_obj = Testimonial.objects.all()
-    context = {'testimonial_obj': testimonial_obj}
-    return render(request, 'dashboard/testimonial.html',context)
+    testimonial_obj = Testimonial.objects.all().order_by('-id')  
+    
+    testimonial_count = testimonial_obj.count()
+    average_rating = testimonial_obj.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    paginator = Paginator(testimonial_obj, 6)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,  # paginated data
+        'testimonial_count': testimonial_count,
+        'average_rating': round(average_rating, 2),
+    }
+
+    return render(request, 'dashboard/testimonial.html', context)
+
+from django.core.paginator import Paginator
 
 def newsletter(request):
-    newsletter_obj = NewsletterSubscriber.objects.all()
-    context = {'newsletter_obj': newsletter_obj}
+    newsletter_obj = NewsletterSubscriber.objects.all().order_by('-subscribed_at')
+    total_count = newsletter_obj.count()
+    active_count = newsletter_obj.filter(status='active').count()
+    inactive_count = newsletter_obj.filter(status='inactive').count()
+
+    paginator = Paginator(newsletter_obj, 5)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    campaigns = Campaign.objects.all().order_by('-created_at')
+
+
+    context = {
+        'newsletter_obj': page_obj,
+        'total_count': total_count,
+        'active_count': active_count,
+        'inactive_count': inactive_count,
+        'campaigns': campaigns,
+    }
     return render(request, 'dashboard/newsletter.html', context)
+
 
 import csv
 
@@ -1208,85 +1351,149 @@ def add_subscriber(request):
     return redirect('newsletter')
 
 def toggle_subscriber(request, subscriber_id):
-    """Activate/Deactivate subscriber"""
-    subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
-    subscriber.is_active = not subscriber.is_active
-    subscriber.save()
+    if request.method == 'POST':
+        subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
+        
+        # Toggle status
+        if subscriber.status == 'active':
+            subscriber.status = 'inactive'
+            action = 'deactivated'
+        else:
+            subscriber.status = 'active'
+            action = 'activated'
+        
+        subscriber.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'new_status': subscriber.status,
+                'message': f'Subscriber {action} successfully'
+            })
+        
+        messages.success(request, f'Subscriber {action} successfully')
+        return redirect('newsletter')  # Replace with your actual view name
     
-    status = "activated" if subscriber.is_active else "deactivated"
-    messages.success(request, f'Subscriber {status} successfully!')
-    return redirect('newsletter_dashboard')
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 def delete_subscriber(request, subscriber_id):
-    """Delete a subscriber"""
-    subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
-    subscriber.delete()
-    messages.success(request, 'Subscriber deleted successfully!')
-    return redirect('newsletter_dashboard')
+    """
+    Delete a subscriber permanently
+    """
+    if request.method == 'POST':
+        subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
+        email = subscriber.email
+        
+        subscriber.delete()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Subscriber {email} deleted successfully'
+            })
+        
+        messages.success(request, f'Subscriber {email} deleted successfully')
+        return redirect('newsletter')  # Replace with your actual view name
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 def export_subscribers(request):
-    """Export subscribers to CSV"""
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="subscribers.csv"'
-    
+    response['Content-Disposition'] = 'attachment; filename="subscribers_{}.csv"'.format(
+        timezone.now().strftime('%Y%m%d_%H%M')
+    )
     writer = csv.writer(response)
     writer.writerow(['Email', 'Subscribed At', 'Status'])
-    
-    subscribers = NewsletterSubscriber.objects.all()
+    subscribers = NewsletterSubscriber.objects.all().order_by('-subscribed_at')
     for subscriber in subscribers:
-        status = 'Active' if subscriber.is_active else 'Inactive'
+        status_map = {
+            'active': 'Active',
+            'inactive': 'Inactive'
+        }
+        status = status_map.get(subscriber.status, 'Unknown')
+        
         writer.writerow([
             subscriber.email, 
             subscriber.subscribed_at.strftime('%Y-%m-%d %H:%M'), 
             status
-        ])
-    
+        ]) 
     return response
 
 def create_campaign(request):
-    """Create a new campaign"""
     if request.method == 'POST':
-        subject = request.POST.get('subject')
-        message = request.POST.get('message')
-        
-        Campaign.objects.create(subject=subject, message=message)
-        messages.success(request, 'Campaign created successfully!')
-    
-    return redirect('newsletter_dashboard')
+        name = request.POST.get('name', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        content = request.POST.get('content', '').strip()
+        status = request.POST.get('status', 'draft')
+        scheduled_at = request.POST.get('scheduled_at')
+
+        if not name or not subject or not content:
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('newsletter')
+                
+        schedule_time = None
+        if scheduled_at:
+            try:
+                schedule_time = datetime.strptime(scheduled_at, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                messages.error(request, 'Invalid date/time format for schedule.')
+                return redirect('newsletter')
+
+        Campaign.objects.create(
+            name=name,
+            subject=subject,
+            content=content,
+            status=status,
+            scheduled_at=schedule_time
+        )
+
+        messages.success(request, f'Campaign "{name}" created successfully!')
+    return redirect('newsletter')
+
+from django.core.mail import EmailMultiAlternatives
 
 def send_campaign(request, campaign_id):
-    """Send campaign to all active subscribers"""
     campaign = get_object_or_404(Campaign, id=campaign_id)
-    
-    if campaign.is_sent:
+
+    if campaign.status == 'sent':
         messages.warning(request, 'This campaign has already been sent!')
-        return redirect('newsletter_dashboard')
+        return redirect('newsletter')
     
-    # Get active subscribers
-    active_subscribers = NewsletterSubscriber.objects.filter(is_active=True)
-    
-    # Send email to each subscriber
+    active_subscribers = NewsletterSubscriber.objects.filter(status='active')
+    if not active_subscribers.exists():
+        messages.warning(request, 'No active subscribers to send this campaign to.')
+        return redirect('newsletter')
+
     sent_count = 0
+    failed_emails = []
+
     for subscriber in active_subscribers:
         try:
-            send_mail(
+            email = EmailMultiAlternatives(
                 subject=campaign.subject,
-                message=campaign.message,
+                body=campaign.content,  # plain text fallback
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[subscriber.email],
-                fail_silently=False,
+                to=[subscriber.email],
             )
+            email.attach_alternative(campaign.content, "text/html")  # HTML content
+            email.send(fail_silently=False)
             sent_count += 1
         except Exception as e:
+            failed_emails.append(subscriber.email)
             print(f"Failed to send to {subscriber.email}: {str(e)}")
-    
-    # Update campaign status
-    campaign.is_sent = True
+
+    campaign.status = 'sent'
     campaign.sent_at = timezone.now()
     campaign.save()
-    
-    messages.success(request, f'Campaign sent successfully to {sent_count} subscribers!')
-    return redirect('newsletter_dashboard')
+
+    # Display results
+    if failed_emails:
+        messages.warning(request, f'Campaign sent to {sent_count} subscribers. Failed for {len(failed_emails)} emails.')
+    else:
+        messages.success(request, f'Campaign sent successfully to {sent_count} subscribers!')
+
+    return redirect('newsletter')
+
 
 def delete_campaign(request, campaign_id):
     """Delete a campaign"""
@@ -1294,12 +1501,6 @@ def delete_campaign(request, campaign_id):
     campaign.delete()
     messages.success(request, 'Campaign deleted successfully!')
     return redirect('newsletter_dashboard')
-
-
-
-
-
-
 
 
 

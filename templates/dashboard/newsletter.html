@@ -205,7 +205,7 @@
             </div>
         </div>
 
-        {% if messages %}
+        {% if messages  %}
         <div class="messages">
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">
@@ -218,16 +218,16 @@
         <!-- Statistics Cards -->
         <div class="newsletter-stats">
             <div class="stat-card">
-                <div class="stat-number">{{ total_subscribers }}</div>
+                <div class="stat-number">{{ total_count }}</div>
                 <div class="stat-label">Total Subscribers</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ active_subscribers }}</div>
+                <div class="stat-number">{{ active_count }}</div>
                 <div class="stat-label">Active Subscribers</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ campaigns.count }}</div>
-                <div class="stat-label">Total Campaigns</div>
+                <div class="stat-number">{{ inactive_count }}</div>
+                <div class="stat-label">Inactive Subscribers</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ campaigns|length }}</div>
@@ -252,7 +252,7 @@
         <!-- Subscribers List -->
         <div class="newsletter-section">
             <div class="section-header">
-                <h2 class="section-title">Subscribers ({{ total_subscribers }})</h2>
+                <h2 class="section-title">Subscribers ({{ total_count }})</h2>
                 <a href="{% url 'export_subscribers' %}" class="btn btn-secondary">
                     <i class="fas fa-download"></i> Export CSV
                 </a>
@@ -265,8 +265,8 @@
                         <p>Subscribed: {{ subscriber.subscribed_at|date:"M d, Y H:i" }}</p>
                     </div>
                     <div class="subscriber-actions">
-                        <span class="status-badge {% if subscriber.is_active %}status-active{% else %}status-inactive{% endif %}">
-                            {% if subscriber.is_active %}Active{% else %}Inactive{% endif %}
+                        <span class="status-badge {% if subscriber.status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                            {% if subscriber.status == 'active' %}Active{% else %}Inactive{% endif %}
                         </span>
                         <form method="POST" action="{% url 'toggle_subscriber' subscriber.id %}" style="display: inline;">
                             {% csrf_token %}
@@ -285,6 +285,30 @@
                 {% empty %}
                 <p style="text-align: center; color: #666; padding: 20px;">No subscribers found.</p>
                 {% endfor %}
+
+                <!-- Pagination -->
+        <div class="pagination">
+            {% if newsletter_obj.has_previous %}
+            <a href="?page={{ newsletter_obj.previous_page_number }}" class="page-link">&laquo;</a>
+            {% else %}
+            <span class="page-link">&laquo;</span>
+            {% endif %}
+
+            {% for num in newsletter_obj.paginator.page_range %}
+            {% if num == newsletter_obj.number %}
+            <span class="current-page">{{ num }}</span>
+            {% elif num > newsletter_obj.number|add:'-3' and num < newsletter_obj.number|add:'3' %}
+            <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if newsletter_obj.has_next %}
+            <a href="?page={{ newsletter_obj.next_page_number }}" class="page-link">&raquo;</a>
+            {% else %}
+            <span class="page-link">&raquo;</span>
+            {% endif %}
+        </div>
+
             </div>
         </div>
 
@@ -295,13 +319,19 @@
             </div>
             <form method="POST" action="{% url 'create_campaign' %}">
                 {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="name">Name of Campaign</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Enter Name of Campaign" required>
+                </div>
+
                 <div class="form-group">
                     <label for="subject">Subject</label>
                     <input type="text" id="subject" name="subject" class="form-control" placeholder="Enter email subject" required>
                 </div>
                 <div class="form-group">
-                    <label for="message">Message</label>
-                    <textarea id="message" name="message" class="form-control" placeholder="Enter your newsletter content..." required></textarea>
+                    <label for="content">Content</label>
+                    <textarea id="content" name="content" class="form-control" placeholder="Enter your newsletter content..." required></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Save Campaign
@@ -323,9 +353,20 @@
                         <p>{{ campaign.message|truncatewords:20 }}</p>
                     </div>
                     <div class="campaign-actions">
-                        <span class="status-badge {% if campaign.is_sent %}status-sent{% else %}status-draft{% endif %}">
-                            {% if campaign.is_sent %}Sent{% else %}Draft{% endif %}
+                      <span class="status-badge 
+                            {% if campaign.status == 'sent' %}
+                                status-sent
+                            {% elif campaign.status == 'scheduled' %}
+                                status-scheduled
+                            {% elif campaign.status == 'cancelled' %}
+                                status-cancelled
+                            {% else %}
+                                status-draft
+                            {% endif %}
+                        ">
+                            {{ campaign.status|capfirst }}
                         </span>
+
                         {% if not campaign.is_sent %}
                         <form method="POST" action="{% url 'send_campaign' campaign.id %}" style="display: inline;">
                             {% csrf_token %}
@@ -365,4 +406,163 @@
         });
     });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Toggle Subscriber Status
+    document.querySelectorAll('.toggle-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const subscriberId = this.getAttribute('data-id');
+            const currentStatus = this.getAttribute('data-current-status');
+            const email = this.closest('.subscriber-item').getAttribute('data-email');
+            
+            if (confirm(`Are you sure you want to ${currentStatus === 'active' ? 'deactivate' : 'activate'} ${email}?`)) {
+                toggleSubscriberStatus(subscriberId, this);
+            }
+        });
+    });
+
+    // Delete Subscriber
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const subscriberId = this.getAttribute('data-id');
+            const email = this.getAttribute('data-email');
+            
+            if (confirm(`Are you sure you want to permanently delete ${email}? This action cannot be undone.`)) {
+                deleteSubscriber(subscriberId, this);
+            }
+        });
+    });
+
+    function toggleSubscriberStatus(subscriberId, button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="spinner"></span> Updating...';
+        button.disabled = true;
+
+        fetch(`/toggle-subscriber/${subscriberId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update button appearance
+                const isNowActive = data.new_status === 'active';
+                
+                // Update status badge
+                const statusBadge = document.getElementById(`status-${subscriberId}`);
+                statusBadge.textContent = data.new_status.charAt(0).toUpperCase() + data.new_status.slice(1);
+                statusBadge.className = `status-badge ${isNowActive ? 'status-active' : 'status-inactive'}`;
+                
+                // Update button
+                button.setAttribute('data-current-status', data.new_status);
+                button.className = `btn btn-sm ${isNowActive ? 'btn-warning' : 'btn-success'} toggle-btn`;
+                button.innerHTML = isNowActive ? 
+                    '<i class="fas fa-pause"></i> Deactivate' : 
+                    '<i class="fas fa-play"></i> Activate';
+                
+                showMessage(data.message, 'success');
+            } else {
+                showMessage(data.message, 'error');
+                button.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred while updating subscriber', 'error');
+            button.innerHTML = originalText;
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
+    }
+
+    function deleteSubscriber(subscriberId, button) {
+        const subscriberItem = button.closest('.subscriber-item');
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<span class="spinner"></span> Deleting...';
+        button.disabled = true;
+
+        fetch(`/delete-subscriber/${subscriberId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Remove the subscriber item with animation
+                subscriberItem.style.opacity = '0';
+                subscriberItem.style.transform = 'translateX(-100%)';
+                setTimeout(() => {
+                    subscriberItem.remove();
+                    
+                    // Check if list is empty now
+                    const subscriberList = document.getElementById('subscribersList');
+                    if (subscriberList.children.length === 0 || 
+                        (subscriberList.children.length === 1 && subscriberList.children[0].classList.contains('empty-state'))) {
+                        subscriberList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <h3>No Subscribers Found</h3>
+                                <p>Add your first subscriber using the form above.</p>
+                            </div>
+                        `;
+                    }
+                }, 300);
+                
+                showMessage(data.message, 'success');
+            } else {
+                showMessage(data.message, 'error');
+                button.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred while deleting subscriber', 'error');
+            button.innerHTML = originalText;
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
+    }
+
+    function showMessage(message, type) {
+        // Create message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `alert alert-${type}`;
+        messageDiv.innerHTML = `
+            ${message}
+            <button type="button" class="close-alert" onclick="this.parentElement.remove()" style="float: right; background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+        `;
+        
+        // Add to messages container
+        const messagesContainer = document.querySelector('.messages') || createMessagesContainer();
+        messagesContainer.appendChild(messageDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (messageDiv.parentElement) {
+                messageDiv.remove();
+            }
+        }, 5000);
+    }
+
+    function createMessagesContainer() {
+        const container = document.createElement('div');
+        container.className = 'messages';
+        document.querySelector('.content').insertBefore(container, document.querySelector('.content').firstChild);
+        return container;
+    }
+});
+</script>
+
 {% endblock %}

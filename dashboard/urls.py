@@ -6,7 +6,6 @@ urlpatterns = [
     
     path('yuaidash-login/', views.login_view, name='login'),
     path('yuaidash/', views.yuaidash, name='yuaidash'),
-
     
     path('add-blog/', views.add_blog, name='add_blog'),
     path('admin/blog/<int:blog_id>/', views.blog_detail, name='blog_detail'),
@@ -14,6 +13,8 @@ urlpatterns = [
     path('blog/delete/<int:pk>/', views.delete_blog, name='delete_blog'),
     
     path('add-faq/', views.add_faq, name='add_faq'),
+    path('faq/edit/<int:faq_id>/', views.edit_faq, name='edit_faq'),
+    path('faq/delete/<int:faq_id>/', views.delete_faq, name='delete_faq'),
     
     
     path('add-services/', views.add_services, name='add_services'),
@@ -23,9 +24,7 @@ urlpatterns = [
     path('services/detail/<int:pk>/delete/', views.delete_service_detail, name='delete_service_detail'),
     
     path('services/<int:service_id>/details/add/', views.add_service_details, name='add_service_details'),
-    path('services/<int:service_id>/details/edit/', views.edit_service_details, name='edit_service_details'),
-
-
+    path('service-detail/<int:detail_id>/edit/', views.edit_service_detail, name='edit_service_details'),
 
     path('add-team/', views.add_team, name='add_team'),
     path('team/<int:pk>/edit/', views.edit_team, name='edit_team'),
@@ -42,6 +41,8 @@ urlpatterns = [
     
     # Main pages
     path('blog/', views.blog, name='blog'),
+    path('toggle-save-comment/<int:comment_id>/', views.toggle_save_comment, name='toggle_save_comment'),
+
     
     path('faq-request/', views.faq_request, name='faq_request'),
     path('send-faq-response/', views.send_faq_response, name='send_faq_response'),
@@ -64,8 +65,8 @@ urlpatterns = [
     
     path('newsletter/', views.newsletter, name='newsletter'),
     path('newsletter/add-subscriber/', views.add_subscriber, name='add_subscriber'),
-    path('newsletter/toggle-subscriber/<int:subscriber_id>/', views.toggle_subscriber, name='toggle_subscriber'),
-    path('newsletter/delete-subscriber/<int:subscriber_id>/', views.delete_subscriber, name='delete_subscriber'),
+    path('toggle-subscriber/<int:subscriber_id>/', views.toggle_subscriber, name='toggle_subscriber'),
+    path('delete-subscriber/<int:subscriber_id>/', views.delete_subscriber, name='delete_subscriber'),    
     path('newsletter/export-subscribers/', views.export_subscribers, name='export_subscribers'),
     path('newsletter/create-campaign/', views.create_campaign, name='create_campaign'),
     path('newsletter/send-campaign/<int:campaign_id>/', views.send_campaign, name='send_campaign'),

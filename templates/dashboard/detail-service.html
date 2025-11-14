@@ -192,6 +192,8 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-primary {
@@ -215,48 +217,114 @@
         transform: translateY(-2px);
     }
 
-    .related-services {
-        margin-top: 60px;
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 0.9rem;
     }
 
-    .related-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
-    }
-
-    .related-card {
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        transition: transform 0.3s ease;
-    }
-
-    .related-card:hover {
-        transform: translateY(-5px);
-    }
-
-    .related-card img {
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
         width: 100%;
-        height: 200px;
-        object-fit: cover;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
     }
 
-    .related-content {
-        padding: 20px;
+    .modal-content {
+        background: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.3s ease;
     }
 
-    .related-content h4 {
-        margin: 0 0 10px 0;
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 1.5rem;
+    }
+
+    .close {
+        color: #999;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close:hover {
         color: #333;
     }
 
-    .related-content p {
+    .modal-body {
+        padding: 30px;
+    }
+
+    .modal-field {
+        margin-bottom: 20px;
+    }
+
+    .modal-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .modal-value {
         color: #666;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        line-height: 1.6;
+    }
+
+    .modal-actions {
+        padding: 20px 30px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-danger {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c0392b;
     }
 
     @media (max-width: 968px) {
@@ -288,6 +356,11 @@
 
         .btn {
             justify-content: center;
+        }
+
+        .modal-content {
+            margin: 10% auto;
+            width: 95%;
         }
     }
 </style>
@@ -366,31 +439,6 @@
                     <h2 class="section-title">About This Service</h2>
                     <div class="service-description-content">
                         <p>{{ service.description }}</p>
-
-                        <!-- Additional content can be added here -->
-                        <!-- <div class="detail-points">
-                            <div class="detail-point">
-                                <i class="fas fa-rocket"></i>
-                                <div class="detail-content">
-                                    <h4>Fast Delivery</h4>
-                                    <p>We ensure quick turnaround times without compromising on quality.</p>
-                                </div>
-                            </div>
-                            <div class="detail-point">
-                                <i class="fas fa-shield-alt"></i>
-                                <div class="detail-content">
-                                    <h4>Quality Assurance</h4>
-                                    <p>Every project goes through rigorous quality checks before delivery.</p>
-                                </div>
-                            </div>
-                            <div class="detail-point">
-                                <i class="fas fa-headset"></i>
-                                <div class="detail-content">
-                                    <h4>24/7 Support</h4>
-                                    <p>Round-the-clock customer support to address your concerns.</p>
-                                </div>
-                            </div>
-                        </div> -->
                     </div>
 
                     <!-- Action Buttons -->
@@ -398,85 +446,147 @@
                         <a href="{% url 'edit_service' service.id %}" class="btn btn-primary">
                             <i class="fas fa-edit"></i> Edit Service
                         </a>
-                        <a href="{% url 'delete_service' service.id %}" class="btn btn-secondary">
+                        <button type="button" class="btn btn-secondary" onclick="openModal({{ service.id }})">
                             <i class="fas fa-trash"></i> Delete Service
-                        </a>
+                        </button>
                         <a href="{% url 'services' %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Services
                         </a>
                     </div>
 
+                    <!-- Delete Service Modal -->
+                    <div id="deleteModal{{ service.id }}" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Confirm Delete</h3>
+                                <button class="close" onclick="closeModal({{ service.id }})">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete <strong>{{ service.service }}</strong>?</p>
+                                <p class="text-muted">This action cannot be undone.</p>
+                            </div>
+                            <div class="modal-actions">
+                                <button onclick="closeModal({{ service.id }})" class="btn btn-secondary">Cancel</button>
+                                <form method="POST" action="{% url 'delete_service' service.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                     <br><br>
-                    <div class="service-header">
-                        <h2 class="section-title">Service Details</h2>
-                        <a href="{% url 'add_service_details' service.id %}" class="btn-primary">
+                    <div class="service-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <h2 class="section-title" style="margin: 0;">Service Details</h2>
+                        <a href="{% url 'add_service_details' service.id %}" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Add Service Details
                         </a>
                     </div>
 
                     {% if service_details %}
-
                     <div class="detail-points">
                         {% for detail in service_details %}
                         <div class="detail-point">
                             <i class="fas fa-check-circle"></i>
                             <div class="detail-content">
-                                <h4>{{ detail.title }}</h4>
+                                <h4 class="d-flex align-items-center gap-2 mb-1" style="font-weight: 600;">
+                                    <span>{{ detail.title }}</span>
+                                    {% if detail.status == 'active' %}
+                                    <span class="badge bg-success" style="font-size: 0.65rem;">Active</span>
+                                    {% elif detail.status == 'inactive' %}
+                                    <span class="badge bg-danger" style="font-size: 0.65rem;">Inactive</span>
+                                    {% elif detail.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Pending</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary" style="font-size: 0.65rem;">{{ detail.status|capfirst }}</span>
+                                    {% endif %}
+                                </h4>
                                 <p>{{ detail.description }}</p>
-
-
                                 <div class="action-buttons" style="margin-top: 15px;">
-                                    <a href="javascript:void(0);" class="btn btn-secondary btn-sm"
-                                        data-bs-toggle="modal" data-bs-target="#detailModal{{ detail.id }}">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openViewModal({{ detail.id }})">
                                         <i class="fas fa-eye"></i> View
-                                    </a>
-
-                                    <a href="{% url 'edit_service_details' detail.id %}" class="btn btn-secondary"
-                                        style="margin-right: 10px;">
+                                    </button>
+                                    <a href="{% url 'edit_service_details' detail.id %}" class="btn btn-secondary btn-sm">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
-
-                                    <a href="{% url 'delete_service_detail' detail.id %}" class="btn btn-secondary">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openModalDetail({{ detail.id }})">
                                         <i class="fas fa-trash"></i> Delete
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Detail Modal -->
-                        <div class="modal fade" id="detailModal{{ detail.id }}" tabindex="-1"
-                            aria-labelledby="detailModalLabel{{ detail.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="detailModalLabel{{ detail.id }}">{{ detail.title }}
-                                        </h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
+                        <!-- View Detail Modal -->
+                        <div id="viewModal{{ detail.id }}" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>Service Detail</h3>
+                                    <button class="close" onclick="closeViewModal({{ detail.id }})">&times;</button>
+                                </div>
+                                <img src="{{detail.image.url}}" alt="">
+                                <div class="modal-body">
+                                    <div class="modal-field">
+                                        <span class="modal-label">Title</span>
+                                        <div class="modal-value">{{ detail.title }}</div>
                                     </div>
-                                    <div class="modal-body">
-                                        <p>{{ detail.description }}</p>
-                                        {% if detail.image %}
-                                        <img src="{{ detail.image.url }}" class="img-fluid rounded mt-2"
-                                            alt="{{ detail.title }}">
-                                        {% endif %}
-                                        <p class="mt-2"><strong>Status:</strong> {{ detail.status }}</p>
+                                    <div class="modal-field">
+                                        <span class="modal-label">Description</span>
+                                        <div class="modal-value">{{ detail.description }}</div>
                                     </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary btn-sm"
-                                            data-bs-dismiss="modal">Close</button>
+                                    <div class="modal-field">
+                                        <span class="modal-label">Status</span>
+                                        <div class="modal-value">
+                                            {% if detail.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                            {% elif detail.status == 'inactive' %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                            {% elif detail.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ detail.status|capfirst }}</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
+                                    <div class="modal-field">
+                                        <span class="modal-label">Created</span>
+                                        <div class="modal-value">{{ detail.created_at|date:"M d, Y H:i" }}</div>
+                                    </div>
+                                    <div class="modal-field">
+                                        <span class="modal-label">Last Updated</span>
+                                        <div class="modal-value">{{ detail.updated_at|date:"M d, Y H:i" }}</div>
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <button onclick="closeViewModal({{ detail.id }})" class="btn btn-primary">Close</button>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Delete Detail Modal -->
+                        <div id="deleteDetailModal{{ detail.id }}" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>Confirm Delete</h3>
+                                    <button class="close" onclick="closeModalDetail({{ detail.id }})">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete <strong>{{ detail.title }}</strong>?</p>
+                                    <p class="text-muted">This action cannot be undone.</p>
+                                </div>
+                                <div class="modal-actions">
+                                    <button onclick="closeModalDetail({{ detail.id }})" class="btn btn-secondary">Cancel</button>
+                                    <form method="POST" action="{% url 'delete_service_detail' detail.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p style="align-content: center; color: #667eea;">No additional service details available.</p>
+                    <p style="text-align: center; color: #667eea; padding: 40px;">No additional service details available.</p>
                     {% endif %}
-
-
                 </div>
 
                 <!-- Sidebar -->
@@ -486,9 +596,7 @@
                         <li class="meta-item">
                             <span class="meta-label">Status:</span>
                             <span class="meta-value">
-                                <span class="status-badge status-{{ service.status|lower }}">
-                                    {{ service.status }}
-                                </span>
+                                <span class="status-badge status-{{ service.status|lower }}">{{ service.status }}</span>
                             </span>
                         </li>
                         <li class="meta-item">
@@ -505,7 +613,7 @@
                         </li>
                         <li class="meta-item">
                             <span class="meta-label">Details:</span>
-                            <span class="meta-value">{{ service_details.count }} points</span>
+                            <span class="meta-value">{{ service_details.count }} Sub Details</span>
                         </li>
                     </ul>
 
@@ -513,73 +621,60 @@
                     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
                         <h4 style="margin-bottom: 15px; color: #333;">Quick Actions</h4>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
-
-                            <a href="#" class="btn btn-secondary" id="shareBtn" style="justify-content: center;">
+                            <button class="btn btn-secondary" id="shareBtn" style="justify-content: center;">
                                 <i class="fas fa-share"></i> Share Service
-                            </a>
-                            <script>
-                                document.getElementById("shareBtn").addEventListener("click", function (e) {
-                                    e.preventDefault();
-                                    navigator.clipboard.writeText(window.location.href).then(() => {
-                                        alert("Link copied to clipboard!");
-                                    });
-                                });
-                            </script>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Related Services -->
-            {% if related_services %}
-            <div class="related-services">
-                <h2 class="section-title">Related Services</h2>
-                <div class="related-grid">
-                    {% for related_service in related_services %}
-                    <div class="related-card">
-                        {% if related_service.image %}
-                        <img src="{{ related_service.image.url }}" alt="{{ related_service.service }}">
-                        {% else %}
-                        <div
-                            style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white;">
-                            <i class="fas fa-cog" style="font-size: 3rem;"></i>
-                        </div>
-                        {% endif %}
-                        <div class="related-content">
-                            <h4>{{ related_service.service }}</h4>
-                            <p>{{ related_service.description|truncatewords:20 }}</p>
-                            <a href="{% url 'service_detail' related_service.id %}" class="btn btn-primary"
-                                style="margin-top: 15px; padding: 8px 16px; font-size: 0.9rem;">
-                                View Details
-                            </a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const links = document.querySelectorAll('a[href^="#"]');
+    // Modal functions for service deletion
+    function openModal(id) {
+        document.getElementById('deleteModal' + id).style.display = 'block';
+    }
 
-        links.forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
+    function closeModal(id) {
+        document.getElementById('deleteModal' + id).style.display = 'none';
+    }
 
-                const targetId = this.getAttribute('href');
-                const targetElement = document.querySelector(targetId);
+    // Modal functions for detail deletion
+    function openModalDetail(id) {
+        document.getElementById('deleteDetailModal' + id).style.display = 'block';
+    }
 
-                if (targetElement) {
-                    targetElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
+    function closeModalDetail(id) {
+        document.getElementById('deleteDetailModal' + id).style.display = 'none';
+    }
+
+    // Modal functions for viewing details
+    function openViewModal(id) {
+        document.getElementById('viewModal' + id).style.display = 'block';
+    }
+
+    function closeViewModal(id) {
+        document.getElementById('viewModal' + id).style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Share button functionality
+    document.getElementById('shareBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Link copied to clipboard!');
         });
     });
 </script>

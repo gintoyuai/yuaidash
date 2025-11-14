@@ -1,8 +1,11 @@
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.shortcuts import redirect, render,get_object_or_404
 from .models import *
 from django.db.models import Q
+from .models import NewsletterSubscriber
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # Create your views here.
 
@@ -126,9 +129,7 @@ def loadblogdetails(request,Bslug):
     blogde = BlogImage.objects.filter(blog=detailBlog)
     return render(request, 'blog-details.html', {'dbList': detailBlog, 'cmt': cmt,'blogimg':blogde})
 
-from django.http import JsonResponse
-# from django.views.decorators.csrf import csrf_exempt
-from .models import NewsletterSubscriber
+
 
 
 def subscribe_newsletter(request):
@@ -146,9 +147,7 @@ def subscribe_newsletter(request):
     return JsonResponse({"message": "Invalid request!", "success": False})
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
+
 
 @csrf_exempt
 def contact_us_view(request):
